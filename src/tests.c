@@ -1,16 +1,29 @@
-#include "main.h"
+#include "tests.h"
 #include <R.h>
 #include <Rinternals.h>
 #include <R_ext/Altrep.h>
 
 static R_altrep_class_t class_descriptor;
 
+static void _error(const char *file, int line, const char *msg, int fail);
 static void test_altrep_inheritance();
 static void test_struct_header();
 static void test_instance_data();
 static void test_set_integer_elt();
 static void test_dataptr();
 static void test_length_method();
+
+#define CHECK(cond) \
+    if (!(cond)) \
+        _error(__FILE__, __LINE__, NULL, 0)
+
+#define CHECK_MSG(cond, msg) \
+    if (!(cond)) \
+        _error(__FILE__, __LINE__, msg, 0)
+
+#define ASSERT(cond) \
+    if (!(cond)) \
+        _error(__FILE__, __LINE__, NULL, 1)
 
 typedef struct {
     char *name;
@@ -32,8 +45,16 @@ static test_t tests[] = {
     {NULL, NULL}
 };
 
+void init_tests(R_altrep_class_t class_descr)
+{
+    R_SEXP(class_descriptor) = duplicate( R_SEXP(class_descr));
+    PROTECT(R_SEXP(class_descriptor));
+}
+
 SEXP run_all_tests()
 {
+    ASSERT( R_SEXP(class_descriptor) != R_NilValue);
+
     size_t test_idx = 0;
     test_t *test = tests;
     while (test != NULL) {
@@ -43,6 +64,17 @@ SEXP run_all_tests()
         test++;
     }
     return R_NilValue;
+}
+
+static void _error(const char *file, int line, const char *msg, int fail)
+{
+    Rprintf("Error at %s:%d", file, line);
+    if (msg)
+        Rprintf(", msg=%s", msg);
+    Rprintf("\n");
+    if (fail) {
+        error("Failure, exiting...");
+    }
 }
 
 static void test_altrep_inheritance()
@@ -82,11 +114,11 @@ static void test_set_integer_elt()
     void *data_ptr_old = DATAPTR(instance);
 
     SET_INTEGER_ELT(instance, 1, 42);
-    CHECK (INTEGER_ELT(instance, 0) == 0);
-    CHECK (INTEGER_ELT(instance, 1) == 42);
-    CHECK (INTEGER_ELT(instance, 2) == 0);
-    CHECK (INTEGER_ELT(instance, 3) == 0);
-    CHECK (INTEGER_ELT(instance, 4) == 0);
+    CHECK( INTEGER_ELT(instance, 0) == 0);
+    CHECK( INTEGER_ELT(instance, 1) == 42);
+    CHECK( INTEGER_ELT(instance, 2) == 0);
+    CHECK( INTEGER_ELT(instance, 3) == 0);
+    CHECK( INTEGER_ELT(instance, 4) == 0);
     
     CHECK_MSG( data_ptr_old == DATAPTR(instance), "DATAPTR should be pointer to same address, ie. no new instance should be allocated.");
     UNPROTECT_PTR(instance);
@@ -99,11 +131,12 @@ static void test_dataptr()
     void *dataptr_old = DATAPTR(instance);
 
     int *dataptr = INTEGER(instance);
-    for (int i = 0; i < VEC_LEN; i++) {
+    const int length = LENGTH(instance);
+    for (int i = 0; i < length; i++) {
         dataptr[i] = i;
     }
 
-    for (int i = 0; i < VEC_LEN; i++) {
+    for (int i = 0; i < length; i++) {
         CHECK( INTEGER_ELT(instance, i) == i);
     }
 
@@ -115,6 +148,5 @@ static void test_dataptr()
 static void test_length_method()
 {
     SEXP instance = R_new_altrep(class_descriptor, R_NilValue, R_NilValue);
-    int expected_length = VEC_LEN;
-    CHECK_MSG (LENGTH(instance) == expected_length, "Length of instance should be 5 (VEC_LEN)");
+    CHECK_MSG (LENGTH(instance) > 0, "Length should be > 0");
 }
