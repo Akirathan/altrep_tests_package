@@ -10,9 +10,8 @@ static int data[VEC_LEN];
 static R_altrep_class_t class_descriptor;
 
 // =========== Static functions ===========
-static void init_data();
+static void init_static_data();
 // Methods to override
-static SEXP simpleclass_ctor();
 static R_xlen_t simpleclass_length(SEXP x);
 static void * simpleclass_dataptr(SEXP x, Rboolean writeable);
 static int simpleclass_elt(SEXP x, R_xlen_t i);
@@ -20,7 +19,7 @@ static int simpleclass_elt(SEXP x, R_xlen_t i);
 
 R_altrep_class_t register_simple_class(DllInfo *dll)
 {
-    init_data();
+    init_static_data();
 
     class_descriptor = R_make_altinteger_class(class_name, package_name, dll);
 
@@ -40,17 +39,11 @@ R_altrep_class_t register_simple_class(DllInfo *dll)
     return class_descriptor;
 }
 
-static void init_data()
+static void init_static_data()
 {
-    memset(data, 0, VEC_LEN);
+    memset(data, 0, VEC_LEN * sizeof(int));
 }
 
-
-static SEXP simpleclass_ctor()
-{
-    SEXP new_instance = R_new_altrep(class_descriptor, R_NilValue, R_NilValue);
-    return new_instance;
-}
 
 static R_xlen_t simpleclass_length(SEXP x)
 {
@@ -64,7 +57,7 @@ static void * simpleclass_dataptr(SEXP x, Rboolean writeable)
 
 static int simpleclass_elt(SEXP x, R_xlen_t i)
 {
-    if (1 <= i && i <= VEC_LEN) {
+    if (0 <= i && i <= VEC_LEN - 1) {
         return data[i];
     }
     else {

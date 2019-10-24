@@ -2,8 +2,11 @@
 #include <R.h>
 #include <Rinternals.h>
 #include <R_ext/Altrep.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 static R_altrep_class_t class_descriptor;
+extern R_altrep_class_t g_class_descriptor;
 
 static void _error(const char *file, int line, const char *msg, int fail);
 static void test_altrep_inheritance();
@@ -48,19 +51,27 @@ static test_t tests[] = {
 void init_tests(R_altrep_class_t class_descr)
 {
     R_SEXP(class_descriptor) = duplicate( R_SEXP(class_descr));
-    PROTECT(R_SEXP(class_descriptor));
+    R_PreserveObject(R_SEXP(class_descriptor));
+}
+
+void deinit_tests()
+{
+    R_ReleaseObject(R_SEXP(class_descriptor));
 }
 
 SEXP run_all_tests()
 {
-    ASSERT( R_SEXP(class_descriptor) != R_NilValue);
+    if (R_SEXP(class_descriptor) == R_NilValue) {
+        // TODO: Fall back to global variable.
+        ASSERT( R_SEXP(g_class_descriptor) != R_NilValue);
+        class_descriptor = g_class_descriptor;
+    }
 
-    size_t test_idx = 0;
     test_t *test = tests;
-    while (test != NULL) {
-        Rprintf("Running %s", test->name);
+    while (test != NULL && test->name != NULL) {
+        Rprintf("Running %s\n", test->name);
         test->func();
-        Rprintf("Finished %s", test->name);
+        Rprintf("Finished %s\n", test->name);
         test++;
     }
     return R_NilValue;
@@ -114,11 +125,7 @@ static void test_set_integer_elt()
     void *data_ptr_old = DATAPTR(instance);
 
     SET_INTEGER_ELT(instance, 1, 42);
-    CHECK( INTEGER_ELT(instance, 0) == 0);
     CHECK( INTEGER_ELT(instance, 1) == 42);
-    CHECK( INTEGER_ELT(instance, 2) == 0);
-    CHECK( INTEGER_ELT(instance, 3) == 0);
-    CHECK( INTEGER_ELT(instance, 4) == 0);
     
     CHECK_MSG( data_ptr_old == DATAPTR(instance), "DATAPTR should be pointer to same address, ie. no new instance should be allocated.");
     UNPROTECT_PTR(instance);
@@ -137,7 +144,10 @@ static void test_dataptr()
     }
 
     for (int i = 0; i < length; i++) {
-        CHECK( INTEGER_ELT(instance, i) == i);
+        char *error_msg = (char *) malloc(128);
+        sprintf(error_msg, "Element at index %d should be %d, but is %d.", i, i, INTEGER_ELT(instance, i));
+        CHECK_MSG( INTEGER_ELT(instance, i) == i, error_msg);
+        free(error_msg);
     }
 
     CHECK_MSG( dataptr_old == DATAPTR(instance), "DATAPTR should be pointer to same address, ie. no new instance should be allocated.");
