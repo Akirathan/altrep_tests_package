@@ -6,7 +6,6 @@
 #include <stdlib.h>
 
 static R_altrep_class_t class_descriptor;
-extern R_altrep_class_t g_class_descriptor;
 
 static void _error(const char *file, int line, const char *msg, int fail);
 static void test_altrep_inheritance();
@@ -50,7 +49,8 @@ static test_t tests[] = {
 
 void init_tests(R_altrep_class_t class_descr)
 {
-    R_SEXP(class_descriptor) = duplicate( R_SEXP(class_descr));
+    // TODO: Implement duplicate?
+    class_descriptor = class_descr;
     R_PreserveObject(R_SEXP(class_descriptor));
 }
 
@@ -61,12 +61,6 @@ void deinit_tests()
 
 SEXP run_all_tests()
 {
-    if (R_SEXP(class_descriptor) == R_NilValue) {
-        // TODO: Fall back to global variable.
-        ASSERT( R_SEXP(g_class_descriptor) != R_NilValue);
-        class_descriptor = g_class_descriptor;
-    }
-
     test_t *test = tests;
     while (test != NULL && test->name != NULL) {
         Rprintf("Running %s\n", test->name);
