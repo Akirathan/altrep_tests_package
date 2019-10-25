@@ -36,7 +36,7 @@ static void _test_struct_header();
 static void _test_instance_data();
 static void _test_modify_instance_data();
 static void _test_set_instance_data();
-static void _test_set_integer_elt();
+static void _test_elt();
 static void _test_dataptr();
 static void _test_length_method();
 
@@ -47,7 +47,7 @@ static test_t tests[] = {
     {"test_instance_data", _test_instance_data},
     {"test_modify_instance_data", _test_modify_instance_data},
     {"test_set_instance_data", _test_set_instance_data},
-    {"test_set_integer_elt", _test_set_integer_elt},
+    {"test_elt", _test_elt},
     {"test_dataptr", _test_dataptr},
     {"test_length_method", _test_length_method},
     {NULL, NULL}
@@ -124,18 +124,17 @@ static void _test_struct_header()
 static void _test_instance_data()
 {
     // data1 = [42], data2 = NA
-	SEXP expected_instance_data1 = allocVector(INTSXP, 1);
+	SEXP expected_instance_data1 = PROTECT(allocVector(INTSXP, 1));
 	int *data_ptr = INTEGER(expected_instance_data1);
 	*data_ptr = 42;
 	SEXP expected_instance_data2 = R_NilValue;
 
     SEXP instance = R_new_altrep(_class_descriptor, expected_instance_data1, expected_instance_data2);
-	SEXP data1 = R_altrep_data1(instance);
-	SEXP data2 = R_altrep_data2(instance);
 
 	int default_flags = 16;
-	CHECK_MSG( R_compute_identical(data1, expected_instance_data1, default_flags), "Instance data1 not identical");
-	CHECK_MSG( R_compute_identical(data2, expected_instance_data2, default_flags), "Instance data2 not identical");
+	CHECK( R_compute_identical(R_altrep_data1(instance), expected_instance_data1, default_flags));
+	CHECK( R_compute_identical(R_altrep_data2(instance), expected_instance_data2, default_flags));
+    UNPROTECT(1);
 }
 
 static void _test_modify_instance_data()
@@ -144,7 +143,6 @@ static void _test_modify_instance_data()
     SEXP int_vec = PROTECT(allocVector(INTSXP, 1));
     SEXP instance = PROTECT(R_new_altrep(_class_descriptor, int_vec, R_NilValue));
 
-    // TODO: More generic type.
     SET_INTEGER_ELT(R_altrep_data1(instance), 0, 42);
 
     SEXP actual_data1 = R_altrep_data1(instance);
@@ -170,15 +168,26 @@ static void _test_set_instance_data()
     UNPROTECT(3);
 }
 
-static void _test_set_integer_elt()
+static void _test_elt()
 {
     SEXP instance = PROTECT(_new_instance());
-    void *data_ptr_old = DATAPTR(instance);
+    const int int_val = 42;
+    const int real_val = 42.0;
+    const void *data_ptr_old = DATAPTR(instance);
 
-    // TODO: index 0?
-    SET_INTEGER_ELT(instance, 1, 42);
-    CHECK( INTEGER_ELT(instance, 1) == 42);
-    
+    switch (TYPEOF(instance)) {
+        case INTSXP:
+            SET_INTEGER_ELT(instance, 0, int_val);
+            CHECK( INTEGER_ELT(instance, 0) == int_val);
+            break;
+        case REALSXP:
+            SET_REAL_ELT(instance, 0, real_val);
+            CHECK( REAL_ELT(instance, 0) == real_val);
+            break;
+        default:
+            warning("_test_elt for type %s not yet implemented.\n", type2char(TYPEOF(instance)));
+    }
+
     CHECK_MSG( data_ptr_old == DATAPTR(instance), "DATAPTR should be pointer to same address, ie. no new instance should be allocated.");
     UNPROTECT(1);
 }
@@ -186,19 +195,21 @@ static void _test_set_integer_elt()
 static void _test_dataptr()
 {
     SEXP instance = PROTECT(_new_instance());
-    void *dataptr_old = DATAPTR(instance);
+    const void *dataptr_old = DATAPTR(instance);
+    const int length = LENGTH(instance);
+
+    if (TYPEOF(instance) != INTSXP) {
+        warning("\t%s for type %s not yet implemented.\n", __func__, type2char(TYPEOF(instance)));
+        return;
+    }
 
     int *dataptr = INTEGER(instance);
-    const int length = LENGTH(instance);
     for (int i = 0; i < length; i++) {
         dataptr[i] = i;
     }
 
     for (int i = 0; i < length; i++) {
-        char *error_msg = (char *) malloc(128);
-        sprintf(error_msg, "Element at index %d should be %d, but is %d.", i, i, INTEGER_ELT(instance, i));
-        CHECK_MSG( INTEGER_ELT(instance, i) == i, error_msg);
-        free(error_msg);
+        CHECK( INTEGER_ELT(instance, i) == i);
     }
 
     CHECK_MSG( dataptr_old == DATAPTR(instance), "DATAPTR should be pointer to same address, ie. no new instance should be allocated.");
