@@ -92,6 +92,7 @@ static void test_struct_header()
 {
     SEXP instance = R_new_altrep(class_descriptor, R_NilValue, R_NilValue);
     CHECK_MSG( ALTREP(instance), "Instance has not ALTREP bit set");
+    // TODO: Type as parameter?
     CHECK_MSG( TYPEOF(instance) == INTSXP, "Instance should have INTSXP type");
 }
 
