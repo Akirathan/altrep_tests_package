@@ -1,4 +1,4 @@
-stopifnot(require(samplepackage))
+stopifnot(require(altreptests))
 
 EXPECTED_LENGTH <- 5
 
@@ -29,7 +29,7 @@ test_modification <- function() {
     stopifnot( expected == vec)
 }
 
-run_all_tests <- function () {
+run_all_tests <- function() {
     for (test_func_tuple in list(
                         list("test_length", test_length),
                         list("test_data", test_data), 
@@ -47,4 +47,9 @@ run_all_tests <- function () {
 }
 
 
-run_all_tests()
+run_all_C_tests <- function() {
+    .Call("run_tests")
+}
+
+
+run_all_C_tests()
