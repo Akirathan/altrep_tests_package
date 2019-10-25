@@ -1,3 +1,5 @@
 ## package has a dynamic library
 #useDynLib(altreptests, .registration = TRUE, .fixes = "CXX_")
 useDynLib(altreptests, .registration = TRUE)
+
+export(altrep_tests)

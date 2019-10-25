@@ -1,5 +1,4 @@
 #include "tests.h"
-#include "simple_class.h"
 #include <R.h>
 #include <Rinternals.h>
 #include <R_ext/Rdynload.h>
@@ -7,19 +6,11 @@
 #include <string.h>
 
 static const R_CallMethodDef CallEntries[] = {
-        {"run_tests", (DL_FUNC) &run_all_tests, 0},
+        {"run_tests_for_descriptor", (DL_FUNC) &run_tests_for_descriptor, 3},
         {NULL, NULL, 0}
 };
 
 void R_init_altreptests(DllInfo *dll)
 {
-    R_altrep_class_t simple_class_descr = register_simple_class(dll);
-    init_tests(simple_class_descr);
-
     R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
-}
-
-void R_unload_altreptests(DllInfo *dll)
-{
-    deinit_tests(dll);
 }
