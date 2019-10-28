@@ -1,3 +1,8 @@
+#ifndef TESTS_COMMON_H_
+#define TESTS_COMMON_H_
+
+#include <R_ext/Altrep.h>
+
 #define CHECK(cond) \
     if (!(cond)) \
         _error(__FILE__, __LINE__, NULL, 0)
@@ -15,6 +20,14 @@ typedef struct {
     void (*func)(void);
 } test_t;
 
+typedef struct {
+    R_altrep_class_t class_descriptor;
+    SEXP data1;
+    SEXP data2;
+} descr_with_data_t;
+
 
 void _error(const char *file, int line, const char *msg, int fail);
 void run_all_tests(const test_t *tests);
+
+#endif

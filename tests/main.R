@@ -1,14 +1,9 @@
 stopifnot(require(altreptests))
 
-run_all_tests <- function() {
-    for (test_func_tuple in list(
-                        list("test_length", test_length),
-                        list("test_data", test_data), 
-                        list("test_modification", test_modification)
-                    ))
-    {
-        func_name <- test_func_tuple[[1]]
-        func <- test_func_tuple[[2]]
+run_tests <- function(tests) {
+    for (test in tests) {
+        func_name <- test[[1]]
+        func <- test[[2]]
         cat("=============================================================================\n")
         cat("Running ", func_name, "\n")
         func()
@@ -17,8 +12,8 @@ run_all_tests <- function() {
     }
 }
 
-
 test_mmap <- function() {
+    #TODO ...
     stopifnot(require(simplemmap))
     fname <- tempfile()
     data <- runif(20)
@@ -28,3 +23,18 @@ test_mmap <- function() {
     munmap(mmaped_data)
 }
 
+test_framework <- function() {
+    altrep_framework_tests()
+}
+
+test_simple_class <- function() {
+    altrep_simple_class_tests()
+}
+
+TESTS <- list(
+    list("test_framework", test_framework),
+    list("test_simple_class", test_simple_class)
+)
+
+
+run_tests(TESTS)

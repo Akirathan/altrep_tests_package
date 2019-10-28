@@ -2,4 +2,4 @@
 #useDynLib(altreptests, .registration = TRUE, .fixes = "CXX_")
 useDynLib(altreptests, .registration = TRUE)
 
-export(altrep_class_tests, altrep_framework_tests)
+export(altrep_class_tests, altrep_framework_tests, altrep_simple_class_tests)

@@ -1,16 +1,15 @@
 #include "simple_class.h"
 #include <string.h>
+#include "tests_common.h"
 
 
 // =========== Static data ===========
-#define VEC_LEN 5
+#define VEC_LEN 15
 static const char *package_name = "simpleclass";
 static const char *class_name = "simple_class";
-static int data[VEC_LEN];
 static R_altrep_class_t class_descriptor;
 
 // =========== Static functions ===========
-static void init_static_data();
 // Methods to override
 static R_xlen_t simpleclass_length(SEXP x);
 static void * simpleclass_dataptr(SEXP x, Rboolean writeable);
@@ -19,8 +18,6 @@ static int simpleclass_elt(SEXP x, R_xlen_t i);
 
 R_altrep_class_t simple_class_register(DllInfo *dll)
 {
-    init_static_data();
-
     class_descriptor = R_make_altinteger_class(class_name, package_name, dll);
 
     // Override ALTREP methods.
@@ -39,11 +36,19 @@ R_altrep_class_t simple_class_register(DllInfo *dll)
     return class_descriptor;
 }
 
-static void init_static_data()
+descr_with_data_t simple_class_get_descr_with_data()
 {
-    memset(data, 0, VEC_LEN * sizeof(int));
+    if (R_SEXP(class_descriptor) == NULL) {
+        error("Must register class first");
+    }
+
+    SEXP sample_data1 = allocVector(INTSXP, VEC_LEN);
+    SEXP sample_data2 = R_NilValue;
+    descr_with_data_t descr_with_data = { class_descriptor, sample_data1, sample_data2};
+    return descr_with_data;
 }
 
+#define SIMPLE_CLASS_DATA(x)  R_altrep_data1(x)
 
 static R_xlen_t simpleclass_length(SEXP x)
 {
@@ -52,13 +57,13 @@ static R_xlen_t simpleclass_length(SEXP x)
 
 static void * simpleclass_dataptr(SEXP x, Rboolean writeable)
 {
-    return (void *)data;
+    return STDVEC_DATAPTR(SIMPLE_CLASS_DATA(x));
 }
 
 static int simpleclass_elt(SEXP x, R_xlen_t i)
 {
     if (0 <= i && i <= VEC_LEN - 1) {
-        return data[i];
+        return INTEGER_ELT(SIMPLE_CLASS_DATA(x), i);
     }
     else {
         return -1;

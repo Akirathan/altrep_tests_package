@@ -6,3 +6,7 @@ altrep_class_tests <- function(class_descriptor, instance_data1=NULL, instance_d
 altrep_framework_tests <- function() {
     .Call("framework_tests")
 }
+
+altrep_simple_class_tests <- function() {
+    .Call("simple_class_tests")
+}
