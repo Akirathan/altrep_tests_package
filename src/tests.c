@@ -82,6 +82,8 @@ static void _error(const char *file, int line, const char *msg, int fail)
 
 static void _init_tests(R_altrep_class_t class_descr, SEXP instance_data1, SEXP instance_data2)
 {
+    srand(42);
+
     // TODO: Implement duplicate?
 #ifdef FASTR
     _class_descriptor = class_descr;
@@ -174,15 +176,16 @@ static void _test_elt()
     const int int_val = 42;
     const int real_val = 42.0;
     const void *data_ptr_old = DATAPTR(instance);
+    const int idx = rand() % LENGTH(instance);
 
     switch (TYPEOF(instance)) {
         case INTSXP:
-            SET_INTEGER_ELT(instance, 0, int_val);
-            CHECK( INTEGER_ELT(instance, 0) == int_val);
+            SET_INTEGER_ELT(instance, idx, int_val);
+            CHECK( INTEGER_ELT(instance, idx) == int_val);
             break;
         case REALSXP:
-            SET_REAL_ELT(instance, 0, real_val);
-            CHECK( REAL_ELT(instance, 0) == real_val);
+            SET_REAL_ELT(instance, idx, real_val);
+            CHECK( REAL_ELT(instance, idx) == real_val);
             break;
         default:
             warning("_test_elt for type %s not yet implemented.\n", type2char(TYPEOF(instance)));
