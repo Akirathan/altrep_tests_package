@@ -72,10 +72,12 @@ static void _test_elt()
             SET_INTEGER_ELT(instance, idx, int_val);
             CHECK( INTEGER_ELT(instance, idx) == int_val);
             break;
+#ifndef FASTR
         case REALSXP:
             SET_REAL_ELT(instance, idx, real_val);
             CHECK( REAL_ELT(instance, idx) == real_val);
             break;
+#endif
         default:
             warning("_test_elt for type %s not yet implemented.\n", type2char(TYPEOF(instance)));
     }
