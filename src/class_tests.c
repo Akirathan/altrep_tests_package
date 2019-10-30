@@ -7,6 +7,7 @@ static SEXP _instance_data2;
 
 static void _init_tests(R_altrep_class_t class_descriptor, SEXP instance_data1, SEXP instance_data2);
 static void _deinit_tests();
+static void _print_addresses();
 static SEXP _new_instance();
 static void _test_elt();
 static void _test_dataptr();
@@ -26,6 +27,9 @@ static const test_t _tests[] = {
 SEXP class_tests_run(R_altrep_class_t class_descriptor, SEXP instance_data1, SEXP instance_data2)
 {
     _init_tests(class_descriptor, instance_data1, instance_data2);
+    if (DEBUG) {
+        _print_addresses();
+    }
     run_all_tests(_tests);
     _deinit_tests();
     return R_NilValue;
@@ -58,9 +62,21 @@ static void _deinit_tests()
     R_ReleaseObject(_instance_data2);
 }
 
+static void _print_addresses()
+{
+    Rprintf("Class_tests addressess:\n");
+    Rprintf("  class_descriptor = %d(0x%x)\n", R_SEXP(_class_descriptor), R_SEXP(_class_descriptor));
+    Rprintf("  instance_data1 = %d(0x%x)\n", _instance_data1, _instance_data1);
+    Rprintf("  instance_data2 = %d(0x%x)\n", _instance_data2, _instance_data2);
+}
+
 static SEXP _new_instance()
 {
-    return R_new_altrep(_class_descriptor, _instance_data1, _instance_data2);
+    SEXP instance = R_new_altrep(_class_descriptor, _instance_data1, _instance_data2);
+    if (DEBUG) {
+        Rprintf("  new instance = %d(0x%x)\n", instance, instance);
+    }
+    return instance;
 }
 
 static void _test_elt()
@@ -68,8 +84,14 @@ static void _test_elt()
     SEXP instance = PROTECT(_new_instance());
     const int int_val = 42;
     const int real_val = 42.0;
+    if (DEBUG) {
+        Rprintf("  Calling DATAPTR(instance=%d(0x%x))\n", instance, instance);
+    }
     const void *data_ptr_old = DATAPTR(instance);
     const int idx = rand() % LENGTH(instance);
+    if (DEBUG) {
+        Rprintf("  Calling SET_INTEGER_ELT(instance=%d(0x%x), idx=%d)\n", instance, instance, idx);
+    }
 
     switch (TYPEOF(instance)) {
         case INTSXP:

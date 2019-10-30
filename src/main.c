@@ -9,6 +9,8 @@
 
 static SEXP _simple_class_tests();
 
+Rboolean DEBUG = TRUE;
+
 static const R_CallMethodDef CallEntries[] = {
         {"class_tests", (DL_FUNC) &class_tests_run, 3},
         {"simple_class_tests", (DL_FUNC) &_simple_class_tests, 0},

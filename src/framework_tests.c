@@ -33,16 +33,25 @@ SEXP framework_tests_run()
     return R_NilValue;
 }
 
+static SEXP _new_instance(R_altrep_class_t class_descriptor, SEXP data1, SEXP data2)
+{
+    SEXP instance = R_new_altrep(class_descriptor, data1, data2);
+    if (DEBUG) {
+        Rprintf("Framework tests: new instance=%d(0x%x)\n", instance, instance);
+    }
+    return instance;
+}
+
 
 static void _test_altrep_inheritance()
 {
-    SEXP instance = R_new_altrep(_class_descriptor, R_NilValue, R_NilValue);
+    SEXP instance = _new_instance(_class_descriptor, R_NilValue, R_NilValue);
     CHECK( R_altrep_inherits(instance, _class_descriptor));
 }
 
 static void _test_struct_header()
 {
-    SEXP instance = R_new_altrep(_class_descriptor, R_NilValue, R_NilValue);
+    SEXP instance = _new_instance(_class_descriptor, R_NilValue, R_NilValue);
     CHECK_MSG( ALTREP(instance), "Instance has not ALTREP bit set");
 }
 
@@ -54,7 +63,7 @@ static void _test_instance_data()
 	*data_ptr = 42;
 	SEXP expected_instance_data2 = R_NilValue;
 
-    SEXP instance = R_new_altrep(_class_descriptor, expected_instance_data1, expected_instance_data2);
+    SEXP instance = _new_instance(_class_descriptor, expected_instance_data1, expected_instance_data2);
 
 	int default_flags = 16;
 	CHECK( R_compute_identical(R_altrep_data1(instance), expected_instance_data1, default_flags));
@@ -66,7 +75,7 @@ static void _test_modify_instance_data()
 {
     // data1 will be VecInt[], ale will be set to VecInt[42]
     SEXP int_vec = PROTECT(allocVector(INTSXP, 1));
-    SEXP instance = PROTECT(R_new_altrep(_class_descriptor, int_vec, R_NilValue));
+    SEXP instance = PROTECT(_new_instance(_class_descriptor, int_vec, R_NilValue));
 
     SET_INTEGER_ELT(R_altrep_data1(instance), 0, 42);
 
@@ -80,7 +89,7 @@ static void _test_modify_instance_data()
 
 static void _test_set_instance_data()
 {
-    SEXP instance = PROTECT(R_new_altrep(_class_descriptor, R_NilValue, R_NilValue));
+    SEXP instance = PROTECT(_new_instance(_class_descriptor, R_NilValue, R_NilValue));
     SEXP int_vec = PROTECT(ScalarInteger(42));
     SEXP lgl_vec = PROTECT(ScalarLogical(1));
     R_set_altrep_data1(instance, int_vec);

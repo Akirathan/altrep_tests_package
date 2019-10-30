@@ -3,6 +3,8 @@
 
 #include <R_ext/Altrep.h>
 
+Rboolean DEBUG;
+
 #define CHECK(cond) \
     if (!(cond)) \
         _error(__FILE__, __LINE__, NULL, 0)

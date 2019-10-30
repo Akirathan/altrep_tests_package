@@ -52,16 +52,25 @@ descr_with_data_t simple_class_get_descr_with_data()
 
 static R_xlen_t simpleclass_length(SEXP x)
 {
+    if (DEBUG) {
+        Rprintf("simpleclass: Length(x=%d(0x%x))\n", x, x);
+    }
     return VEC_LEN;
 }
 
 static void * simpleclass_dataptr(SEXP x, Rboolean writeable)
 {
-    return STDVEC_DATAPTR(SIMPLE_CLASS_DATA(x));
+    if (DEBUG) {
+        Rprintf("simpleclass: Dataptr(x=%d(0x%x), writeable=%d)\n", x, x, writeable);
+    }
+    return DATAPTR(SIMPLE_CLASS_DATA(x));
 }
 
 static int simpleclass_elt(SEXP x, R_xlen_t i)
 {
+    if (DEBUG) {
+        Rprintf("simpleclass: Elt(x=%d(0x%x), i=%d)\n", x, x, i);
+    }
     if (0 <= i && i <= VEC_LEN - 1) {
         return INTEGER_ELT(SIMPLE_CLASS_DATA(x), i);
     }
