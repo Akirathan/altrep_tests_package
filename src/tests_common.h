@@ -17,6 +17,17 @@ Rboolean DEBUG;
     if (!(cond)) \
         _error(__FILE__, __LINE__, NULL, 1)
 
+#define PREFIX "[NATIVE]: "
+char *__msg;
+#define LOG(fmt, ...) \
+    if (DEBUG) { \
+        __msg = (char *)malloc(strlen(PREFIX) + strlen(fmt) + 1); \
+        strcpy(__msg, PREFIX); \
+        strcpy(__msg + strlen(PREFIX), fmt); \
+        Rprintf(__msg, ##__VA_ARGS__);\
+        free(__msg); \
+    }
+
 typedef struct {
     char *name;
     void (*func)(void);
@@ -31,7 +42,6 @@ typedef struct {
 
 void _error(const char *file, int line, const char *msg, int fail);
 void run_all_tests(const test_t *tests);
-void _log(const char *fmt, ...);
 SEXP wrapper_new_altrep(R_altrep_class_t class_descriptor, SEXP data1, SEXP data2);
 SEXP wrapper_altrep_data1(SEXP instance);
 SEXP wrapper_altrep_data2(SEXP instance);

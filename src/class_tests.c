@@ -63,10 +63,10 @@ static void _deinit_tests()
 
 static void _print_addresses()
 {
-    _log("Class_tests addressess:\n");
-    _log("  class_descriptor = %d(0x%x)\n", R_SEXP(_class_descriptor), R_SEXP(_class_descriptor));
-    _log("  instance_data1 = %d(0x%x)\n", _instance_data1, _instance_data1);
-    _log("  instance_data2 = %d(0x%x)\n", _instance_data2, _instance_data2);
+    LOG("Class_tests addressess:\n");
+    LOG("  class_descriptor = %d(0x%x)\n", R_SEXP(_class_descriptor), R_SEXP(_class_descriptor));
+    LOG("  instance_data1 = %d(0x%x)\n", _instance_data1, _instance_data1);
+    LOG("  instance_data2 = %d(0x%x)\n", _instance_data2, _instance_data2);
 }
 
 static void _test_elt()
@@ -74,14 +74,8 @@ static void _test_elt()
     SEXP instance = PROTECT(wrapper_new_altrep(_class_descriptor, _instance_data1, _instance_data2));
     const int int_val = 42;
     const int real_val = 42.0;
-    if (DEBUG) {
-        _log("  Calling DATAPTR(instance=%d(0x%x))\n", instance, instance);
-    }
     const void *data_ptr_old = wrapper_dataptr(instance);
     const int idx = rand() % wrapper_length(instance);
-    if (DEBUG) {
-        _log("  Calling SET_INTEGER_ELT(instance=%d(0x%x), idx=%d)\n", instance, instance, idx);
-    }
 
     switch (TYPEOF(instance)) {
         case INTSXP:

@@ -58,7 +58,7 @@ static void _test_instance_data()
 
 	int default_flags = 16;
 	CHECK( R_compute_identical(wrapper_altrep_data1(instance), expected_instance_data1, default_flags));
-	CHECK( R_compute_identical(wrapper_altrep_data1(instance), expected_instance_data2, default_flags));
+	CHECK( R_compute_identical(wrapper_altrep_data2(instance), expected_instance_data2, default_flags));
     UNPROTECT(1);
 }
 
