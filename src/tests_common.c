@@ -36,7 +36,7 @@ void _log(const char *fmt, ...)
 
     va_list args;
     va_start(args, fmt);
-    printf(msg, args);
+    Rvprintf(msg, args);
     va_end(args);
 
     free(msg);
@@ -58,7 +58,7 @@ SEXP wrapper_altrep_data1(SEXP instance)
     }
     SEXP data1 = R_altrep_data1(instance);
     if (DEBUG) {
-        _log(" -> data1=%d(0x%x)\n", data1, data1);
+        _log("  -> data1=%d(0x%x)\n", data1, data1);
     }
     return data1;
 }
@@ -70,7 +70,7 @@ SEXP wrapper_altrep_data2(SEXP instance)
     }
     SEXP data2 = R_altrep_data2(instance);
     if (DEBUG) {
-        _log(" -> data2=%d(0x%x)\n", data2, data2);
+        _log("  -> data2=%d(0x%x)\n", data2, data2);
     }
     return data2;
 }
@@ -82,7 +82,7 @@ void * wrapper_dataptr(SEXP instance)
     }
     void *ptr = DATAPTR(instance);
     if (DEBUG) {
-        _log(" -> ptr=%d(0x%x)\n", ptr, ptr);
+        _log("  -> ptr=%d(0x%x)\n", ptr, ptr);
     }
     return ptr;
 }
@@ -94,7 +94,7 @@ R_xlen_t wrapper_length(SEXP instance)
     }
     R_xlen_t len = LENGTH(instance);
     if (DEBUG) {
-        _log(" -> length=%d\n", len);
+        _log("  -> length=%d\n", len);
     }
     return len;
 }
