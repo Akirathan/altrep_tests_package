@@ -8,14 +8,14 @@ static SEXP _instance_data2;
 static void _init_tests(R_altrep_class_t class_descriptor, SEXP instance_data1, SEXP instance_data2);
 static void _deinit_tests();
 static void _print_addresses();
-static void _test_elt();
+static void _test_set_elt();
 static void _test_dataptr();
 static void _test_length_method();
 static void _test_get_one_region();
 static void _test_get_more_regions();
 
 static const test_t _tests[] = {
-    {"test_elt", _test_elt},
+    {"test_set_elt", _test_set_elt},
     {"test_dataptr", _test_dataptr},
     {"test_length_method", _test_length_method},
     {"test_get_one_region", _test_get_one_region},
@@ -69,7 +69,10 @@ static void _print_addresses()
     LOG("  instance_data2 = %d(0x%x)\n", _instance_data2, _instance_data2);
 }
 
-static void _test_elt()
+/**
+ * This is actually also a DATAPTR tests, because SET_INTEGER_ELT expands to DATAPTR.
+ */
+static void _test_set_elt()
 {
     SEXP instance = PROTECT(wrapper_new_altrep(_class_descriptor, _instance_data1, _instance_data2));
     const int int_val = 42;
@@ -89,7 +92,7 @@ static void _test_elt()
             break;
 #endif
         default:
-            warning("_test_elt for type %s not yet implemented.\n", type2char(TYPEOF(instance)));
+            warning("_test_set_elt for type %s not yet implemented.\n", type2char(TYPEOF(instance)));
     }
 
     CHECK_MSG( data_ptr_old == DATAPTR(instance), "DATAPTR should be pointer to same address, ie. no new instance should be allocated.");
