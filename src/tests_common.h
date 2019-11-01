@@ -31,5 +31,11 @@ typedef struct {
 
 void _error(const char *file, int line, const char *msg, int fail);
 void run_all_tests(const test_t *tests);
+void _log(const char *fmt, ...);
+SEXP wrapper_new_altrep(R_altrep_class_t class_descriptor, SEXP data1, SEXP data2);
+SEXP wrapper_altrep_data1(SEXP instance);
+SEXP wrapper_altrep_data2(SEXP instance);
+void * wrapper_dataptr(SEXP instance);
+R_xlen_t wrapper_length(SEXP instance);
 
 #endif

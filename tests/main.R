@@ -32,8 +32,8 @@ test_simple_class <- function() {
 }
 
 TESTS <- list(
-    list("test_framework", test_framework),
-    list("test_simple_class", test_simple_class)
+    list("test_framework (native)", test_framework),
+    list("test_simple_class (native)", test_simple_class)
 )
 
 

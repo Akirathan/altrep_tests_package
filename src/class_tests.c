@@ -8,7 +8,6 @@ static SEXP _instance_data2;
 static void _init_tests(R_altrep_class_t class_descriptor, SEXP instance_data1, SEXP instance_data2);
 static void _deinit_tests();
 static void _print_addresses();
-static SEXP _new_instance();
 static void _test_elt();
 static void _test_dataptr();
 static void _test_length_method();
@@ -64,33 +63,24 @@ static void _deinit_tests()
 
 static void _print_addresses()
 {
-    Rprintf("Class_tests addressess:\n");
-    Rprintf("  class_descriptor = %d(0x%x)\n", R_SEXP(_class_descriptor), R_SEXP(_class_descriptor));
-    Rprintf("  instance_data1 = %d(0x%x)\n", _instance_data1, _instance_data1);
-    Rprintf("  instance_data2 = %d(0x%x)\n", _instance_data2, _instance_data2);
-}
-
-static SEXP _new_instance()
-{
-    SEXP instance = R_new_altrep(_class_descriptor, _instance_data1, _instance_data2);
-    if (DEBUG) {
-        Rprintf("  new instance = %d(0x%x)\n", instance, instance);
-    }
-    return instance;
+    _log("Class_tests addressess:\n");
+    _log("  class_descriptor = %d(0x%x)\n", R_SEXP(_class_descriptor), R_SEXP(_class_descriptor));
+    _log("  instance_data1 = %d(0x%x)\n", _instance_data1, _instance_data1);
+    _log("  instance_data2 = %d(0x%x)\n", _instance_data2, _instance_data2);
 }
 
 static void _test_elt()
 {
-    SEXP instance = PROTECT(_new_instance());
+    SEXP instance = PROTECT(wrapper_new_altrep(_class_descriptor, _instance_data1, _instance_data2));
     const int int_val = 42;
     const int real_val = 42.0;
     if (DEBUG) {
-        Rprintf("  Calling DATAPTR(instance=%d(0x%x))\n", instance, instance);
+        _log("  Calling DATAPTR(instance=%d(0x%x))\n", instance, instance);
     }
-    const void *data_ptr_old = DATAPTR(instance);
-    const int idx = rand() % LENGTH(instance);
+    const void *data_ptr_old = wrapper_dataptr(instance);
+    const int idx = rand() % wrapper_length(instance);
     if (DEBUG) {
-        Rprintf("  Calling SET_INTEGER_ELT(instance=%d(0x%x), idx=%d)\n", instance, instance, idx);
+        _log("  Calling SET_INTEGER_ELT(instance=%d(0x%x), idx=%d)\n", instance, instance, idx);
     }
 
     switch (TYPEOF(instance)) {
@@ -114,9 +104,9 @@ static void _test_elt()
 
 static void _test_dataptr()
 {
-    SEXP instance = PROTECT(_new_instance());
-    const void *dataptr_old = DATAPTR(instance);
-    const int length = LENGTH(instance);
+    SEXP instance = PROTECT(wrapper_new_altrep(_class_descriptor, _instance_data1, _instance_data2));
+    const void *dataptr_old = wrapper_dataptr(instance);
+    const int length = wrapper_length(instance);
 
     if (TYPEOF(instance) != INTSXP) {
         warning("\t%s for type %s not yet implemented.\n", __func__, type2char(TYPEOF(instance)));
@@ -138,13 +128,13 @@ static void _test_dataptr()
 
 static void _test_length_method()
 {
-    SEXP instance = _new_instance();
+    SEXP instance = wrapper_new_altrep(_class_descriptor, _instance_data1, _instance_data2);
     CHECK_MSG (LENGTH(instance) > 0, "Length should be > 0");
 }
 
 static void _test_get_one_region()
 {
-    SEXP instance = PROTECT(_new_instance());
+    SEXP instance = PROTECT(wrapper_new_altrep(_class_descriptor, _instance_data1, _instance_data2));
 
     if (TYPEOF(instance) != INTSXP) {
         warning("\t%s for type %s not yet implemented.\n", __func__, type2char(TYPEOF(instance)));
@@ -178,7 +168,7 @@ static void _test_get_more_regions()
     const int region_2_size = 3;
     const int region_2_value = 2;
 
-    SEXP instance = PROTECT(_new_instance());
+    SEXP instance = PROTECT(wrapper_new_altrep(_class_descriptor, _instance_data1, _instance_data2));
 
     if (TYPEOF(instance) != INTSXP) {
         warning("\t%s for type %s not yet implemented.\n", __func__, type2char(TYPEOF(instance)));
