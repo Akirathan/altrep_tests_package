@@ -44,6 +44,29 @@ Rboolean run_all_tests(const test_t *tests)
     return _failed_tests.size == 0;
 }
 
+void print_buffer(const int *buffer, size_t size)
+{
+    Rprintf("[");
+    for (size_t i = 0; i < size; i++) {
+        Rprintf("%d,", buffer[i]);
+    }
+    Rprintf("]");
+}
+
+void check_buffers(const int *expected, const int *actual, size_t size)
+{
+    for (size_t i = 0; i < size; i++) {
+        if (expected[i] != actual[i]) {
+            LOG("Error: buffers not equal - expected=");
+            print_buffer(expected, size);
+            Rprintf("  , actual=");
+            print_buffer(actual, size);
+            Rprintf("\n");
+            return;
+        }
+    }
+}
+
 
 SEXP wrapper_new_altrep(R_altrep_class_t class_descriptor, SEXP data1, SEXP data2)
 {

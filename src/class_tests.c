@@ -135,28 +135,30 @@ static void _test_get_one_region()
 
     if (TYPEOF(instance) != INTSXP) {
         warning("\t%s for type %s not yet implemented.\n", __func__, type2char(TYPEOF(instance)));
-        goto end;
+        UNPROTECT(1);
+        return;
     }
     if (LENGTH(instance) < 5) {
         warning("Expected at least length 5 of instance.\n");
-        goto end;
+        UNPROTECT(1);
+        return;
     }
     SET_INTEGER_ELT(instance, 1, 1);
     SET_INTEGER_ELT(instance, 2, 2);
 
     int buf[2] = {0};
-    INTEGER_GET_REGION(instance, 1, 2, buf);
-    CHECK( buf[0] == 1);
-    CHECK( buf[1] == 2);
+    int expected_buf[2] = {1, 2};
+    R_xlen_t copied = INTEGER_GET_REGION(instance, 1, 2, buf);
+    CHECK( copied > 0);
+    check_buffers(expected_buf, buf, 2);
 
-end:
     UNPROTECT(1);
 }
 
 static void _test_get_more_regions()
 {
-    //  0 1 2 3 4 5 6 7 8 9
-    // [x 1 1 1 x x x 2 2 2]
+    // idx  =  0 1 2 3 4 5 6 7 8 9
+    // vals = [x 1 1 1 x x x 2 2 2]
     const int region_1_from = 1;
     const int region_1_size = 3;
     const int region_1_value = 1;
@@ -169,11 +171,13 @@ static void _test_get_more_regions()
 
     if (TYPEOF(instance) != INTSXP) {
         warning("\t%s for type %s not yet implemented.\n", __func__, type2char(TYPEOF(instance)));
-        goto end;
+        UNPROTECT(1);
+        return;
     }
     if (LENGTH(instance) < 10) {
         warning("Expected at least length 10 of instance.\n");
-        goto end;
+        UNPROTECT(1);
+        return;
     }
 
     for (int i = region_1_from; i < region_1_from + region_1_size; i++) {
@@ -185,15 +189,13 @@ static void _test_get_more_regions()
     }
 
     int buf[3] = {0};
+    int expected_buf[3] = {region_1_value, region_1_value, region_1_value};
     INTEGER_GET_REGION(instance, region_1_from, region_1_size, buf);
-    for (int i = 0; i < region_1_size; i++) {
-        CHECK( buf[i] == region_1_value);
-    }
-    INTEGER_GET_REGION(instance, region_2_from, region_2_size, buf);
-    for (int i = 0; i < region_2_size; i++) {
-        CHECK( buf[i] == region_2_value);
-    }
+    check_buffers(expected_buf, buf, region_1_size);
 
-end:
+    int expected_buf_2[3] = {region_2_value, region_2_value, region_2_value};
+    INTEGER_GET_REGION(instance, region_2_from, region_2_size, buf);
+    check_buffers(expected_buf_2, buf, region_2_size);
+
     UNPROTECT(1);
 }

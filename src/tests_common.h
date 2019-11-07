@@ -42,6 +42,8 @@ typedef struct {
 
 void _error(const char *file, int line, const char *msg, int fail);
 Rboolean run_all_tests(const test_t *tests);
+void print_buffer(const int *buffer, size_t size);
+void check_buffers(const int *expected, const int *actual, size_t size);
 SEXP wrapper_new_altrep(R_altrep_class_t class_descriptor, SEXP data1, SEXP data2);
 SEXP wrapper_altrep_data1(SEXP instance);
 SEXP wrapper_altrep_data2(SEXP instance);
