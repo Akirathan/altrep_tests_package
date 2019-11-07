@@ -1,14 +1,27 @@
 stopifnot(require(altreptests))
 
+some_test_failed <- FALSE
+
 run_tests <- function(tests) {
     for (test in tests) {
         func_name <- test[[1]]
         func <- test[[2]]
         cat("=============================================================================\n")
         cat("Running ", func_name, "\n")
-        func()
-        cat("Finished ", func_name, "\n")
+        succ <- func()
+        if (!succ) {
+            cat(func_name, " FAILED\n")
+            some_test_failed <- TRUE
+        }
+        else {
+            cat(func_name, "SUCCEEDED\n")
+        }
         cat("=============================================================================\n")
+    }
+
+    if (some_test_failed) {
+        stop("Some test failed")
+        quit(save="no", status=1)
     }
 }
 

@@ -27,7 +27,7 @@ void _error(const char *file, int line, const char *msg, int fail)
     _add_failed_test();
 }
 
-void run_all_tests(const test_t *tests)
+Rboolean run_all_tests(const test_t *tests)
 {
     _init_failed_tests_list();
 
@@ -41,6 +41,7 @@ void run_all_tests(const test_t *tests)
     }
 
     _report_failures();
+    return _failed_tests.size == 0;
 }
 
 

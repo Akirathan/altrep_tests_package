@@ -29,8 +29,8 @@ void framework_tests_init(DllInfo *dll_info)
 
 SEXP framework_tests_run()
 {
-    run_all_tests(_tests);
-    return R_NilValue;
+    Rboolean succ = run_all_tests(_tests);
+    return ScalarLogical(succ);
 }
 
 

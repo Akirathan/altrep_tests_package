@@ -29,9 +29,9 @@ SEXP class_tests_run(R_altrep_class_t class_descriptor, SEXP instance_data1, SEX
     if (DEBUG) {
         _print_addresses();
     }
-    run_all_tests(_tests);
+    Rboolean succ = run_all_tests(_tests);
     _deinit_tests();
-    return R_NilValue;
+    return ScalarLogical(succ);
 }
 
 
