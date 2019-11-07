@@ -14,6 +14,7 @@ static R_altrep_class_t class_descriptor;
 static R_xlen_t simpleclass_length(SEXP x);
 static void * simpleclass_dataptr(SEXP x, Rboolean writeable);
 static int simpleclass_elt(SEXP x, R_xlen_t i);
+static R_xlen_t simpleclass_get_region(SEXP x, R_xlen_t from_idx, R_xlen_t size, int *buffer);
 
 
 R_altrep_class_t simple_class_register(DllInfo *dll)
@@ -28,6 +29,7 @@ R_altrep_class_t simple_class_register(DllInfo *dll)
 
     // Override ALTINT methods.
     R_set_altinteger_Elt_method(class_descriptor, simpleclass_elt);
+    R_set_altinteger_Get_region_method(class_descriptor, simpleclass_get_region);
 
     if (R_SEXP(class_descriptor) == R_NilValue) {
         error("class_descriptor is NULL");
@@ -71,4 +73,22 @@ static int simpleclass_elt(SEXP x, R_xlen_t i)
     else {
         return -1;
     }
+}
+
+static R_xlen_t simpleclass_get_region(SEXP x, R_xlen_t from_idx, R_xlen_t size, int *buffer)
+{
+    SEXP data = SIMPLE_CLASS_DATA(x);
+    if ((size >= VEC_LEN) ||
+        (!(0 <= from_idx && from_idx < VEC_LEN)) ||
+        buffer == NULL ||
+        TYPEOF(data) != INTSXP)
+    {
+        return -1;
+    }
+    int *data_ptr = INTEGER(data);
+    memcpy(buffer, data_ptr + from_idx, size * sizeof(int));
+    LOG("simpleclass: GetRegion(from_idx=%d, size=%d, buffer=", from_idx, size);
+    print_buffer(buffer, size);
+    Rprintf(")\n");
+    return size;
 }
