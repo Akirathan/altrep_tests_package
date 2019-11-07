@@ -38,6 +38,16 @@ R_altrep_class_t simple_class_register(DllInfo *dll)
     return class_descriptor;
 }
 
+SEXP simple_class_new_instance()
+{
+    if (R_SEXP(class_descriptor) == NULL) {
+        error("Must register class first");
+    }
+
+    SEXP data1 = allocVector(INTSXP, VEC_LEN);
+    return R_new_altrep(class_descriptor, data1, R_NilValue);
+}
+
 descr_with_data_t simple_class_get_descr_with_data()
 {
     if (R_SEXP(class_descriptor) == NULL) {

@@ -12,7 +12,7 @@ static SEXP _simple_class_tests();
 Rboolean DEBUG = TRUE;
 
 static const R_CallMethodDef CallEntries[] = {
-        {"class_tests", (DL_FUNC) &class_tests_run, 3},
+        {"class_tests", (DL_FUNC) &class_tests_run, 1},
         {"simple_class_tests", (DL_FUNC) &_simple_class_tests, 0},
         {"framework_tests", (DL_FUNC) &framework_tests_run, 0},
         {NULL, NULL, 0}
@@ -29,6 +29,6 @@ void R_init_altreptests(DllInfo *dll)
 
 static SEXP _simple_class_tests()
 {
-    descr_with_data_t descr_with_data = simple_class_get_descr_with_data();
-    return class_tests_run(descr_with_data.class_descriptor, descr_with_data.data1, descr_with_data.data2);
+    SEXP simple_class_instance = simple_class_new_instance();
+    return class_tests_run(simple_class_instance);
 }

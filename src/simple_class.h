@@ -8,6 +8,7 @@
 #include "tests_common.h"
 
 R_altrep_class_t simple_class_register(DllInfo *info);
+SEXP simple_class_new_instance();
 descr_with_data_t simple_class_get_descr_with_data();
 
 #endif
