@@ -6,7 +6,7 @@
 #include "framework_tests.h"
 #include "class_tests.h"
 #include "simple_class.h"
-#include "simplemmap.h"
+#include "simplemmap_class_tests.h"
 
 static SEXP _simple_class_tests();
 static SEXP _simplemmap_class_tests();
@@ -26,10 +26,15 @@ static R_altrep_class_t _simple_class_descr;
 void R_init_altreptests(DllInfo *dll)
 {
     framework_tests_init(dll);
-    simplemmap_init_classes(dll);
+    simplemmap_class_tests_init(dll);
     // TODO: Change this to simpleclass_init_class(dll);
     _simple_class_descr = simple_class_register(dll);
     R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
+}
+
+void R_unload_altreptests()
+{
+    simplemmap_class_tests_deinit();
 }
 
 static SEXP _simple_class_tests()
@@ -40,6 +45,5 @@ static SEXP _simple_class_tests()
 
 static SEXP _simplemmap_class_tests()
 {
-    SEXP instance = simplemmap_new_instance();
-    return class_tests_run(instance);
+    return simplemmap_class_tests_run();
 }

@@ -49,8 +49,7 @@ SEXP simplemmap_new_instance()
     Rboolean writeabble = TRUE;
     Rboolean serialization = FALSE;
     Rboolean print_warnings = FALSE;
-    SEXP instance = mmap_file(fname_sexp, INTSXP, keep_pointer, writeabble, serialization, print_warnings);
-    return instance;
+    return mmap_file(fname_sexp, INTSXP, keep_pointer, writeabble, serialization, print_warnings);
 }
 
 /**
