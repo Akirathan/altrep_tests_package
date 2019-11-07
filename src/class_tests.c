@@ -22,6 +22,7 @@ static const test_t _tests[] = {
 
 SEXP class_tests_run(SEXP instance)
 {
+    ASSERT( instance != R_NilValue);
     if (!ALTREP(instance)) {
         return ScalarLogical(FALSE);
     }
@@ -103,11 +104,11 @@ static void _test_dataptr()
 static void _test_get_one_region()
 {
     if (TYPEOF(_instance) != INTSXP) {
-        warning("\t%s for type %s not yet implemented.\n", __func__, type2char(TYPEOF(_instance)));
+        Rprintf("\t%s for type %s not yet implemented.\n", __func__, type2char(TYPEOF(_instance)));
         return;
     }
     if (LENGTH(_instance) < 5) {
-        warning("Expected at least length 5 of instance.\n");
+        Rprintf("Expected at least length 5 of instance.\n");
         return;
     }
     SET_INTEGER_ELT(_instance, 1, 1);
@@ -133,10 +134,12 @@ static void _test_get_more_regions()
     const int region_2_value = 2;
 
     if (TYPEOF(_instance) != INTSXP) {
-        warning("\t%s for type %s not yet implemented.\n", __func__, type2char(TYPEOF(_instance)));
+        Rprintf("Type %s not yet implemented, skipping %s\n", type2char(TYPEOF(_instance)), __func__);
+        return;
     }
     if (LENGTH(_instance) < 10) {
-        warning("Expected at least length 10 of instance.\n");
+        Rprintf("Expected at least length 10 of instance, skipping %s\n", __func__);
+        return;
     }
 
     for (int i = region_1_from; i < region_1_from + region_1_size; i++) {

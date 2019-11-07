@@ -1,6 +1,8 @@
 #ifndef TESTS_COMMON_H_
 #define TESTS_COMMON_H_
 
+#include <R.h>
+#include <Rinternals.h>
 #include <R_ext/Altrep.h>
 
 Rboolean DEBUG;

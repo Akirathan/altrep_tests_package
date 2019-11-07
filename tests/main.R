@@ -44,9 +44,14 @@ test_simple_class <- function() {
     altrep_simple_class_tests()
 }
 
+test_simplemmap <- function() {
+    altrep_simplemmap_class_tests()
+}
+
 TESTS <- list(
     list("test_framework (native)", test_framework),
-    list("test_simple_class (native)", test_simple_class)
+    list("test_simple_class (native)", test_simple_class),
+    list("test_simplemmap (native)", test_simplemmap)
 )
 
 

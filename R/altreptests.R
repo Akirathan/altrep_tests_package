@@ -10,3 +10,7 @@ altrep_framework_tests <- function() {
 altrep_simple_class_tests <- function() {
     .Call("simple_class_tests")
 }
+
+altrep_simplemmap_class_tests <- function() {
+    .Call("simplemmap_class_tests")
+}
