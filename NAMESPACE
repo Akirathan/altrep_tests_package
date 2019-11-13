@@ -1,5 +1,5 @@
 ## package has a dynamic library
 #useDynLib(altreptests, .registration = TRUE, .fixes = "CXX_")
-useDynLib(altreptests, .registration = TRUE)
+useDynLib(altreptests, .registration = TRUE, .fixes="CXX_")
 
-export(altrep_class_tests, altrep_framework_tests, altrep_simple_class_tests, altrep_simplemmap_class_tests)
+export(altrep_class_tests, altrep_framework_tests, altrep_simple_class_tests)

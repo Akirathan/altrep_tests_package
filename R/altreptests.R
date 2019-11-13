@@ -1,6 +1,6 @@
 
-altrep_class_tests <- function(class_descriptor, instance_data1=NULL, instance_data2=NULL) {
-    .Call("class_tests", class_descriptor, instance_data1, instance_data2)
+altrep_class_tests <- function(instance) {
+    .Call("class_tests", instance)
 }
 
 altrep_framework_tests <- function() {
@@ -9,8 +9,4 @@ altrep_framework_tests <- function() {
 
 altrep_simple_class_tests <- function() {
     .Call("simple_class_tests")
-}
-
-altrep_simplemmap_class_tests <- function() {
-    .Call("simplemmap_class_tests")
 }
