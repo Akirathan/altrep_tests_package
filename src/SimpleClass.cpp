@@ -15,6 +15,7 @@ void SimpleClass::init(DllInfo *info)
 
     // Override ALTINT methods.
     R_set_altinteger_Elt_method(descr, elt);
+    R_set_altinteger_Get_region_method(descr, getRegion);
 }
 
 R_altrep_class_t SimpleClass::getDescriptor()
