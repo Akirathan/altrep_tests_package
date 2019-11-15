@@ -20,6 +20,12 @@
     if (!(cond)) \
         Tests::error_(__FILE__, __LINE__, NULL, 1)
 
+#define SKIP_IF_NOT(cond) \
+    if (!(cond)) { \
+        Rprintf("Some test precondition (at %s:%d) is not satisfied, skipping <func_name>\n", __FILE__, __LINE__); \
+        return; \
+    }
+
 
 struct Test {
     std::string name;

@@ -67,10 +67,7 @@ void ClassTests::testDataptr()
     const void *dataptr_old = DATAPTR(instance);
     const int length = LENGTH(instance);
 
-    if (TYPEOF(instance) != INTSXP) {
-        warning("\t%s for type %s not yet implemented.\n", __func__, type2char(TYPEOF(instance)));
-        return;
-    }
+    SKIP_IF_NOT( TYPEOF(instance) == INTSXP);
 
     int *dataptr = INTEGER(instance);
     for (int i = 0; i < length; i++) {
@@ -86,14 +83,9 @@ void ClassTests::testDataptr()
 
 void ClassTests::testGetOneRegion()
 {
-    if (TYPEOF(instance) != INTSXP) {
-        Rprintf("\t%s for type %s not yet implemented.\n", __func__, type2char(TYPEOF(instance)));
-        return;
-    }
-    if (LENGTH(instance) < 5) {
-        Rprintf("Expected at least length 5 of instance.\n");
-        return;
-    }
+    SKIP_IF_NOT( TYPEOF(instance) == INTSXP);
+    SKIP_IF_NOT( LENGTH(instance) > 5);
+
     SET_INTEGER_ELT(instance, 1, 1);
     SET_INTEGER_ELT(instance, 2, 2);
 
@@ -106,6 +98,9 @@ void ClassTests::testGetOneRegion()
 
 void ClassTests::testGetMoreRegions()
 {
+    SKIP_IF_NOT( TYPEOF(instance) == INTSXP);
+    SKIP_IF_NOT( LENGTH(instance) > 10);
+
     // idx  =  0 1 2 3 4 5 6 7 8 9
     // vals = [x 1 1 1 x x x 2 2 2]
     const int region_1_from = 1;
@@ -115,15 +110,6 @@ void ClassTests::testGetMoreRegions()
     const int region_2_from = 8;
     const int region_2_size = 3;
     const int region_2_value = 2;
-
-    if (TYPEOF(instance) != INTSXP) {
-        Rprintf("Type %s not yet implemented, skipping %s\n", type2char(TYPEOF(instance)), __func__);
-        return;
-    }
-    if (LENGTH(instance) < 10) {
-        Rprintf("Expected at least length 10 of instance, skipping %s\n", __func__);
-        return;
-    }
 
     for (int i = region_1_from; i < region_1_from + region_1_size; i++) {
         SET_INTEGER_ELT(instance, i, region_1_value);
