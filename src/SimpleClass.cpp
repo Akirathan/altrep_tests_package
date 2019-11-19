@@ -1,5 +1,6 @@
 #include "SimpleClass.hpp"
 #include "altrep_include.hpp"
+#include <algorithm>
 
 R_altrep_class_t SimpleClass::descr;
 
@@ -30,6 +31,7 @@ SEXP SimpleClass::createInstance()
     }
 
     SEXP data1 = allocVector(INTSXP, vec_len);
+    std::fill(INTEGER(data1), INTEGER(data1) + vec_len, 42);
     return R_new_altrep(descr, data1, R_NilValue);
 }
 
@@ -49,7 +51,7 @@ int SimpleClass::elt(SEXP instance, R_xlen_t idx)
         return INTEGER_ELT(getData(instance), idx);
     }
     else {
-        return -1;
+        return R_NaInt;
     }
 }
 
@@ -61,7 +63,7 @@ R_xlen_t SimpleClass::getRegion(SEXP instance, R_xlen_t from_idx, R_xlen_t size,
         buffer == nullptr ||
         TYPEOF(data) != INTSXP)
     {
-        return -1;
+        return R_NaInt;
     }
 
     int *data_ptr = INTEGER(data);

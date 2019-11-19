@@ -13,7 +13,7 @@ public:
     static SEXP createInstance();
 
 private:
-    static constexpr char *name = "SimpleClass";
+    static constexpr const char *name = "SimpleClass";
     static constexpr R_xlen_t vec_len = 30;
     static R_altrep_class_t descr;
 
