@@ -2,13 +2,15 @@
 #include <R.h>
 #include <Rinternals.h>
 #include "Tests.hpp"
+#include <numeric>
 
 const std::vector< Test> ClassTests::tests = {
     {"test_length", testLength},
     {"test_set_elt", testSetElt},
     {"test_dataptr", testDataptr},
     {"test_get_one_region", testGetOneRegion},
-    {"test_get_more_regions", testGetMoreRegions}
+    {"test_get_more_regions", testGetMoreRegions},
+    {"test_is_sorted", testIsSorted}
 };
 SEXP ClassTests::instance;
 
@@ -25,6 +27,7 @@ void ClassTests::beforeRunAll(SEXP _instance)
 {
     instance = _instance;
     R_PreserveObject(instance);
+    std::srand(42);
 }
 
 void ClassTests::afterRunAll()
@@ -93,7 +96,7 @@ void ClassTests::testGetOneRegion()
     int expected_buf[2] = {1, 2};
     R_xlen_t copied = INTEGER_GET_REGION(instance, 1, 2, buf);
     CHECK( copied > 0);
-    Tests::checkBuffers(expected_buf, buf, 2);
+    Tests::checkBuffersEqual(expected_buf, buf, 2);
 }
 
 void ClassTests::testGetMoreRegions()
@@ -122,9 +125,48 @@ void ClassTests::testGetMoreRegions()
     int buf[3] = {0};
     int expected_buf[3] = {region_1_value, region_1_value, region_1_value};
     INTEGER_GET_REGION(instance, region_1_from, region_1_size, buf);
-    Tests::checkBuffers(expected_buf, buf, region_1_size);
+    Tests::checkBuffersEqual(expected_buf, buf, region_1_size);
 
     int expected_buf_2[3] = {region_2_value, region_2_value, region_2_value};
     INTEGER_GET_REGION(instance, region_2_from, region_2_size, buf);
-    Tests::checkBuffers(expected_buf_2, buf, region_2_size);
+    Tests::checkBuffersEqual(expected_buf_2, buf, region_2_size);
+}
+
+void ClassTests::testIsSorted()
+{
+    SKIP_IF_NOT( TYPEOF(instance) == INTSXP || TYPEOF(instance) == REALSXP);
+
+    switch (TYPEOF(instance)) {
+        case INTSXP: {
+            int sorted = INTEGER_IS_SORTED(instance);
+            Tests::checkBufferSorted(INTEGER(instance), LENGTH(instance), sorted);
+            break;
+        }
+        case REALSXP: {
+            int sorted = REAL_IS_SORTED(instance);
+            Tests::checkBufferSorted(REAL(instance), LENGTH(instance), sorted);
+            break;
+        }
+    }
+}
+
+void ClassTests::testSum()
+{
+    const int length = LENGTH(instance);
+    SKIP_IF_NOT(length > 10);
+    SKIP_IF_NOT(TYPEOF(instance) == INTSXP);
+
+    for (R_xlen_t i = 0; i < length; i++) {
+        const int value = std::rand() % length;
+        SET_INTEGER_ELT(instance, i, value);
+    }
+    std::vector<int> vec(INTEGER(instance), INTEGER(instance) + length);
+    int expected_sum = std::accumulate(vec.begin(), vec.end(), 0);
+
+    SEXP actual_sum_sexp = ALTINTEGER_SUM(instance, TRUE);
+    CHECK( LENGTH(actual_sum_sexp) == 1);
+    CHECK( TYPEOF(actual_sum_sexp) == INTSXP);
+    int actual_sum = INTEGER_ELT(actual_sum_sexp, 1);
+
+    CHECK( actual_sum == expected_sum);
 }

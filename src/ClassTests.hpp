@@ -20,6 +20,8 @@ private:
     static void testDataptr();
     static void testGetOneRegion();
     static void testGetMoreRegions();
+    static void testIsSorted();
+    static void testSum();
 };
 
 #endif // CLASS_TESTS_HPP_

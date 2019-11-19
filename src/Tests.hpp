@@ -3,9 +3,14 @@
 
 #include <R.h>
 #include <Rinternals.h>
+// TODO: This is a quickfix for clang - there is apperently a macro clash in <sstream> with length macro.
+#undef length
 #include <string>
 #include <vector>
 #include <functional>
+#include <algorithm>
+#include <sstream>
+#define length Rf_length
 
 
 #define CHECK(cond) \
@@ -38,29 +43,49 @@ public:
     static void error_(const char *file, int line, const char *msg, int fail);
 
     template <typename T>
-    static bool checkBuffers(const T *expected, const T *actual, size_t size)
+    static void checkBuffersEqual(const T *expected, const T *actual, size_t size)
     {
-        for (size_t i = 0; i < size; i++) {
-            if (expected[i] != actual[i]) {
-                Rprintf("Error: buffers not equal - expected=");
-                printBuffer(expected, size);
-                Rprintf("  , actual=");
-                printBuffer(actual, size);
-                Rprintf("\n");
-                return false;
+        std::vector<T> wrapped_expected(expected, expected + size);
+        std::vector<T> wrapped_actual(actual, actual + size);
+        if (wrapped_actual != wrapped_expected) {
+            std::ostringstream ss;
+            ss << "Error: Buffers not equal - expected=[";
+            for (auto &&item : wrapped_expected) {
+                ss << item << ",";
             }
+            ss << "], actual=[";
+            for (auto &&item : wrapped_actual) {
+                ss << item << ",";
+            }
+            ss << "]";
+            std::string msg = ss.str();
+            CHECK_MSG( false, msg.c_str());
         }
-        return true;
     }
 
     template <typename T>
-    static void printBuffer(const T *buffer, size_t size)
+    static void checkBufferSorted(const T *buffer, size_t size, int sorted)
     {
-        Rprintf("[");
-        for (size_t i = 0; i < size; i++) {
-            Rprintf("%d,", buffer[i]);
+        std::vector<T> sorted_buffer(buffer, buffer + size);
+        switch (sorted) {
+            case KNOWN_UNSORTED:
+            case UNKNOWN_SORTEDNESS:
+                return;
+            case SORTED_INCR:
+            case SORTED_INCR_NA_1ST:
+                std::sort(sorted_buffer.begin(), sorted_buffer.end(), std::greater_equal<T>());
+                break;
+            case SORTED_DECR:
+            case SORTED_DECR_NA_1ST:
+                std::sort(sorted_buffer.begin(), sorted_buffer.end(), std::less_equal<T>());
+                break;
+            default:
+                // TODO: throw exception?
+                return;
         }
-        Rprintf("]");
+
+        std::vector<T> wrapped_buffer(buffer, buffer + size);
+        CHECK_MSG( sorted_buffer == wrapped_buffer, "Buffer is not sorted");
     }
 
 private:
