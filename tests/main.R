@@ -35,9 +35,9 @@ test_simple_class <- function() {
 
 test_simplemmap <- function() {
     stopifnot(require("simplemmap"))
-    FILE_SIZE <- 50
+    FILE_SIZE <- 20
     fname <- tempfile()
-    data <- runif(FILE_SIZE)
+    data <- rep.int(42, FILE_SIZE)
     writeBin(data, fname)
     mmap_instance <- mmap(fname, type="int", ptrOK=TRUE, wrtOK=TRUE, serOK=FALSE)
 
@@ -50,11 +50,23 @@ test_simplemmap <- function() {
     return (succ)
 }
 
+test_vroom <- function() {
+    # TODO: ....
+    stopifnot(require("vroom"))
+}
+
+ONLY_ONE_TEST <- FALSE
 TESTS <- list(
     list("test_framework (native)", test_framework),
     list("test_simple_class (native)", test_simple_class),
     list("test_simplemmap", test_simplemmap)
 )
+ONE_TEST <- list(list("test_simplemmap", test_simplemmap))
 
 
-run_tests(TESTS)
+
+if (ONLY_ONE_TEST) {
+    run_tests(ONE_TEST)
+} else {
+    run_tests(TESTS)
+}
