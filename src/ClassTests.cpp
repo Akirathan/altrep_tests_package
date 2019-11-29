@@ -26,6 +26,7 @@ SEXP ClassTests::runAll(SEXP instance)
 void ClassTests::beforeRunAll(SEXP _instance)
 {
     instance = _instance;
+    ASSERT( ALTREP(instance));
     R_PreserveObject(instance);
     std::srand(42);
 }
@@ -95,7 +96,7 @@ void ClassTests::testGetOneRegion()
     int buf[2] = {0};
     int expected_buf[2] = {1, 2};
     R_xlen_t copied = INTEGER_GET_REGION(instance, 1, 2, buf);
-    CHECK( copied > 0);
+    CHECK( copied == 2);
     Tests::checkBuffersEqual(expected_buf, buf, 2);
 }
 
@@ -124,11 +125,13 @@ void ClassTests::testGetMoreRegions()
 
     int buf[3] = {0};
     int expected_buf[3] = {region_1_value, region_1_value, region_1_value};
-    INTEGER_GET_REGION(instance, region_1_from, region_1_size, buf);
+    R_xlen_t copied = INTEGER_GET_REGION(instance, region_1_from, region_1_size, buf);
+    CHECK( copied == region_1_size);
     Tests::checkBuffersEqual(expected_buf, buf, region_1_size);
 
     int expected_buf_2[3] = {region_2_value, region_2_value, region_2_value};
-    INTEGER_GET_REGION(instance, region_2_from, region_2_size, buf);
+    copied = INTEGER_GET_REGION(instance, region_2_from, region_2_size, buf);
+    CHECK( copied == region_2_size);
     Tests::checkBuffersEqual(expected_buf_2, buf, region_2_size);
 }
 

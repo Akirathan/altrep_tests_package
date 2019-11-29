@@ -15,8 +15,8 @@ void SimpleClass::init(DllInfo *info)
     R_set_altvec_Dataptr_method(descr, SimpleClass::dataptr);
 
     // Override ALTINT methods.
-    R_set_altinteger_Elt_method(descr, elt);
-    R_set_altinteger_Get_region_method(descr, getRegion);
+    R_set_altinteger_Elt_method(descr, SimpleClass::elt);
+    R_set_altinteger_Get_region_method(descr, SimpleClass::getRegion);
 }
 
 R_altrep_class_t SimpleClass::getDescriptor()
