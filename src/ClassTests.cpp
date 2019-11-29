@@ -10,7 +10,9 @@ const std::vector< Test> ClassTests::tests = {
     {"test_dataptr", testDataptr},
     {"test_get_one_region", testGetOneRegion},
     {"test_get_more_regions", testGetMoreRegions},
-    {"test_is_sorted", testIsSorted}
+    {"test_is_sorted", testIsSorted},
+    {"test_coerce", testCoerce},
+    {"test_duplicate", testDuplicate}
 };
 SEXP ClassTests::instance;
 
@@ -172,4 +174,43 @@ void ClassTests::testSum()
     int actual_sum = INTEGER_ELT(actual_sum_sexp, 1);
 
     CHECK( actual_sum == expected_sum);
+}
+
+void ClassTests::testCoerce()
+{
+    SKIP_IF_NOT( LENGTH(instance) > 10);
+    SKIP_IF_NOT( TYPEOF(instance) == INTSXP);
+
+    SEXP coerced_vector = coerceVector(instance, REALSXP);
+    if (coerced_vector == R_NilValue) {
+        Rprintf("testCoerce: coerce not implemented via altrep, skipping test...\n");
+        return;
+    }
+    CHECK( TYPEOF(coerced_vector) == REALSXP);
+    CHECK( LENGTH(coerced_vector) == LENGTH(instance));
+
+    int default_flags = 16;
+    // TODO: Neni to moc slozity?
+    CHECK( R_compute_identical(instance, coerced_vector, default_flags));
+}
+
+/**
+ * ALTREP_DUPLICATE is not called in GNU-R, only ALTREP_DUPLICATE_EX.
+ * Called via duplicate or shallow_duplicate.
+ */
+void ClassTests::testDuplicate()
+{
+    SEXP duplicated_instance = duplicate(instance);
+    if (duplicated_instance == R_NilValue) {
+        Rprintf("testDuplicate: duplicate (deep) not implemented via altrep, skipping test...\n");
+    }
+    int default_flags = 16;
+    // TODO: Shallow compute identical?
+    CHECK( R_compute_identical(instance, duplicated_instance, default_flags));
+
+    SEXP shallow_duplicated_instance = shallow_duplicate(instance);
+    if (duplicated_instance == R_NilValue) {
+        Rprintf("testDuplicate: duplicate (shallow) not implemented via altrep, skipping test...\n");
+    }
+    CHECK( R_compute_identical(instance, shallow_duplicated_instance, default_flags));
 }

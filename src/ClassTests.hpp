@@ -22,6 +22,8 @@ private:
     static void testGetMoreRegions();
     static void testIsSorted();
     static void testSum();
+    static void testCoerce();
+    static void testDuplicate();
 };
 
 #endif // CLASS_TESTS_HPP_
