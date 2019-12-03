@@ -15,11 +15,11 @@ private:
     static const std::vector< Test> tests;
     static R_altrep_class_t simple_descr;
 
-    static void testAltrepInheritance();
-    static void testStructHeader();
-    static void testInstanceData();
-    static void testModifyInstanceData();
-    static void testSetInstanceData();
+    static bool testAltrepInheritance();
+    static bool testStructHeader();
+    static bool testInstanceData();
+    static bool testModifyInstanceData();
+    static bool testSetInstanceData();
 };
 
 #endif // FRAMEWORK_TESTS_HPP_

@@ -5,6 +5,7 @@
 #include "altrep_include.hpp"
 #include <vector>
 
+// TODO: Convert to non-static class.
 class ClassTests {
 public:
     static SEXP runAll(SEXP instance);
@@ -15,15 +16,15 @@ private:
 
     static void beforeRunAll(SEXP instance);
     static void afterRunAll();
-    static void testLength();
-    static void testSetElt();
-    static void testDataptr();
-    static void testGetOneRegion();
-    static void testGetMoreRegions();
-    static void testIsSorted();
-    static void testSum();
-    static void testCoerce();
-    static void testDuplicate();
+    static bool testLength();
+    static bool testSetElt();
+    static bool testDataptr();
+    static bool testGetOneRegion();
+    static bool testGetMoreRegions();
+    static bool testIsSorted();
+    static bool testSum();
+    static bool testCoerce();
+    static bool testDuplicate();
 };
 
 #endif // CLASS_TESTS_HPP_

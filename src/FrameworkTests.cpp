@@ -24,21 +24,26 @@ SEXP FrameworkTests::run()
     return ScalarLogical(succ);
 }
 
-void FrameworkTests::testAltrepInheritance()
+bool FrameworkTests::testAltrepInheritance()
 {
+    INIT_TEST;
     SEXP instance = APIWrapper::R_new_altrep(simple_descr, R_NilValue, R_NilValue);
     CHECK( R_altrep_inherits(instance, simple_descr));
+    FINISH_TEST;
 }
 
 
-void FrameworkTests::testStructHeader()
+bool FrameworkTests::testStructHeader()
 {
+    INIT_TEST;
     SEXP instance = APIWrapper::R_new_altrep(simple_descr, R_NilValue, R_NilValue);
     CHECK_MSG( ALTREP(instance), "Instance has not ALTREP bit set");
+    FINISH_TEST;
 }
 
-void FrameworkTests::testInstanceData()
+bool FrameworkTests::testInstanceData()
 {
+    INIT_TEST;
     // data1 = [42], data2 = NA
 	SEXP expected_instance_data1 = PROTECT(allocVector(INTSXP, 1));
 	int *data_ptr = INTEGER(expected_instance_data1);
@@ -51,10 +56,12 @@ void FrameworkTests::testInstanceData()
 	CHECK( R_compute_identical(APIWrapper::R_altrep_data1(instance), expected_instance_data1, default_flags));
 	CHECK( R_compute_identical(APIWrapper::R_altrep_data2(instance), expected_instance_data2, default_flags));
     UNPROTECT(1);
+    FINISH_TEST;
 }
 
-void FrameworkTests::testModifyInstanceData()
+bool FrameworkTests::testModifyInstanceData()
 {
+    INIT_TEST;
     // data1 will be VecInt[], ale will be set to VecInt[42]
     SEXP int_vec = PROTECT(allocVector(INTSXP, 1));
     SEXP instance = PROTECT(APIWrapper::R_new_altrep(simple_descr, int_vec, R_NilValue));
@@ -67,10 +74,12 @@ void FrameworkTests::testModifyInstanceData()
     CHECK( INTEGER_ELT(actual_data1, 0) == 42);
 
     UNPROTECT(2);
+    FINISH_TEST;
 }
 
-void FrameworkTests::testSetInstanceData()
+bool FrameworkTests::testSetInstanceData()
 {
+    INIT_TEST;
     SEXP instance = PROTECT(APIWrapper::R_new_altrep(simple_descr, R_NilValue, R_NilValue));
     SEXP int_vec = PROTECT(ScalarInteger(42));
     SEXP lgl_vec = PROTECT(ScalarLogical(1));
@@ -82,4 +91,5 @@ void FrameworkTests::testSetInstanceData()
     CHECK( R_compute_identical(APIWrapper::R_altrep_data2(instance), lgl_vec, default_flags));
 
     UNPROTECT(3);
+    FINISH_TEST;
 }

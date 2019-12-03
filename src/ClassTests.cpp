@@ -11,8 +11,8 @@ const std::vector< Test> ClassTests::tests = {
     {"test_get_one_region", testGetOneRegion},
     {"test_get_more_regions", testGetMoreRegions},
     {"test_is_sorted", testIsSorted},
-    {"test_coerce", testCoerce},
-    {"test_duplicate", testDuplicate}
+    {"test_coerce", testCoerce, {"test_dataptr"}},
+    {"test_duplicate", testDuplicate, {"test_dataptr"}}
 };
 SEXP ClassTests::instance;
 
@@ -38,13 +38,16 @@ void ClassTests::afterRunAll()
     R_ReleaseObject(instance);
 }
 
-void ClassTests::testLength()
+bool ClassTests::testLength()
 {
+    INIT_TEST;
     CHECK_MSG (LENGTH(instance) > 0, "Length should be > 0");
+    FINISH_TEST;
 }
 
-void ClassTests::testSetElt()
+bool ClassTests::testSetElt()
 {
+    INIT_TEST;
     const int int_val = 42;
     const int real_val = 42.0;
     const void *data_ptr_old = DATAPTR(instance);
@@ -66,10 +69,12 @@ void ClassTests::testSetElt()
     }
 
     CHECK_MSG( data_ptr_old == DATAPTR(instance), "DATAPTR should be pointer to same address, ie. no new instance should be allocated.");
+    FINISH_TEST;
 }
 
-void ClassTests::testDataptr()
+bool ClassTests::testDataptr()
 {
+    INIT_TEST;
     const void *dataptr_old = DATAPTR(instance);
     const int length = LENGTH(instance);
 
@@ -85,10 +90,12 @@ void ClassTests::testDataptr()
     }
 
     CHECK_MSG( dataptr_old == DATAPTR(instance), "DATAPTR should be pointer to same address, ie. no new instance should be allocated.");
+    FINISH_TEST;
 }
 
-void ClassTests::testGetOneRegion()
+bool ClassTests::testGetOneRegion()
 {
+    INIT_TEST;
     SKIP_IF_NOT( TYPEOF(instance) == INTSXP);
     SKIP_IF_NOT( LENGTH(instance) > 5);
 
@@ -99,11 +106,13 @@ void ClassTests::testGetOneRegion()
     int expected_buf[2] = {1, 2};
     R_xlen_t copied = INTEGER_GET_REGION(instance, 1, 2, buf);
     CHECK( copied == 2);
-    Tests::checkBuffersEqual(expected_buf, buf, 2);
+    Tests::areBuffersEqual(expected_buf, buf, 2);
+    FINISH_TEST;
 }
 
-void ClassTests::testGetMoreRegions()
+bool ClassTests::testGetMoreRegions()
 {
+    INIT_TEST;
     SKIP_IF_NOT( TYPEOF(instance) == INTSXP);
     SKIP_IF_NOT( LENGTH(instance) > 10);
 
@@ -129,34 +138,38 @@ void ClassTests::testGetMoreRegions()
     int expected_buf[3] = {region_1_value, region_1_value, region_1_value};
     R_xlen_t copied = INTEGER_GET_REGION(instance, region_1_from, region_1_size, buf);
     CHECK( copied == region_1_size);
-    Tests::checkBuffersEqual(expected_buf, buf, region_1_size);
+    CHECK( Tests::areBuffersEqual(expected_buf, buf, region_1_size));
 
     int expected_buf_2[3] = {region_2_value, region_2_value, region_2_value};
     copied = INTEGER_GET_REGION(instance, region_2_from, region_2_size, buf);
     CHECK( copied == region_2_size);
-    Tests::checkBuffersEqual(expected_buf_2, buf, region_2_size);
+    CHECK( Tests::areBuffersEqual(expected_buf_2, buf, region_2_size));
+    FINISH_TEST;
 }
 
-void ClassTests::testIsSorted()
+bool ClassTests::testIsSorted()
 {
+    INIT_TEST;
     SKIP_IF_NOT( TYPEOF(instance) == INTSXP || TYPEOF(instance) == REALSXP);
 
     switch (TYPEOF(instance)) {
         case INTSXP: {
             int sorted = INTEGER_IS_SORTED(instance);
-            Tests::checkBufferSorted(INTEGER(instance), LENGTH(instance), sorted);
+            CHECK( Tests::isBufferSorted(INTEGER(instance), LENGTH(instance), sorted));
             break;
         }
         case REALSXP: {
             int sorted = REAL_IS_SORTED(instance);
-            Tests::checkBufferSorted(REAL(instance), LENGTH(instance), sorted);
+            CHECK( Tests::isBufferSorted(REAL(instance), LENGTH(instance), sorted));
             break;
         }
     }
+    FINISH_TEST;
 }
 
-void ClassTests::testSum()
+bool ClassTests::testSum()
 {
+    INIT_TEST;
     const int length = LENGTH(instance);
     SKIP_IF_NOT(length > 10);
     SKIP_IF_NOT(TYPEOF(instance) == INTSXP);
@@ -174,17 +187,19 @@ void ClassTests::testSum()
     int actual_sum = INTEGER_ELT(actual_sum_sexp, 1);
 
     CHECK( actual_sum == expected_sum);
+    FINISH_TEST;
 }
 
-void ClassTests::testCoerce()
+bool ClassTests::testCoerce()
 {
+    INIT_TEST;
     SKIP_IF_NOT( LENGTH(instance) > 10);
     SKIP_IF_NOT( TYPEOF(instance) == INTSXP);
 
     SEXP coerced_vector = coerceVector(instance, REALSXP);
     if (coerced_vector == R_NilValue) {
         Rprintf("testCoerce: coerce not implemented via altrep, skipping test...\n");
-        return;
+        return false;
     }
     CHECK( TYPEOF(coerced_vector) == REALSXP);
     CHECK( LENGTH(coerced_vector) == LENGTH(instance));
@@ -192,17 +207,20 @@ void ClassTests::testCoerce()
     int default_flags = 16;
     // TODO: Neni to moc slozity?
     CHECK( R_compute_identical(instance, coerced_vector, default_flags));
+    FINISH_TEST;
 }
 
 /**
  * ALTREP_DUPLICATE is not called in GNU-R, only ALTREP_DUPLICATE_EX.
  * Called via duplicate or shallow_duplicate.
  */
-void ClassTests::testDuplicate()
+bool ClassTests::testDuplicate()
 {
+    INIT_TEST;
     SEXP duplicated_instance = duplicate(instance);
     if (duplicated_instance == R_NilValue) {
         Rprintf("testDuplicate: duplicate (deep) not implemented via altrep, skipping test...\n");
+        return false;
     }
     int default_flags = 16;
     // TODO: Shallow compute identical?
@@ -211,6 +229,8 @@ void ClassTests::testDuplicate()
     SEXP shallow_duplicated_instance = shallow_duplicate(instance);
     if (duplicated_instance == R_NilValue) {
         Rprintf("testDuplicate: duplicate (shallow) not implemented via altrep, skipping test...\n");
+        return false;
     }
     CHECK( R_compute_identical(instance, shallow_duplicated_instance, default_flags));
+    FINISH_TEST;
 }
