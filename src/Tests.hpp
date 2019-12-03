@@ -28,18 +28,19 @@
 
 #define CHECK(cond) \
     if (!(cond)) { \
+        Rprintf("CHECK failed at %s:%d\n", __FILE__, __LINE__); \
         __result = false; \
     }
 
 #define CHECK_MSG(cond, msg) \
     if (!(cond)) { \
-        Rprintf("%s:%s: %s\n", __FILE__, __LINE__, msg); \
+        Rprintf("CHECK failed at %s:%d: %s\n", __FILE__, __LINE__, msg); \
         __result = false; \
     }
 
 #define ASSERT(cond) \
     if (!(cond)) { \
-        error("%s:%s\n", __FILE__, __LINE__); \
+        error("%s:%d\n", __FILE__, __LINE__); \
     }
 
 #define SKIP_IF_NOT(cond) \
@@ -79,20 +80,20 @@ public:
     }
 
     template <typename T>
-    static bool isBufferSorted(const T *buffer, size_t size, int sorted)
+    static bool isBufferSorted(const T *buffer, size_t size, int sorted_mode)
     {
         std::vector<T> sorted_buffer(buffer, buffer + size);
-        switch (sorted) {
+        switch (sorted_mode) {
             case KNOWN_UNSORTED:
             case UNKNOWN_SORTEDNESS:
-                return false;
+                return true;
             case SORTED_INCR:
             case SORTED_INCR_NA_1ST:
-                std::sort(sorted_buffer.begin(), sorted_buffer.end(), std::greater_equal<T>());
+                std::sort(sorted_buffer.begin(), sorted_buffer.end(), std::less_equal<T>());
                 break;
             case SORTED_DECR:
             case SORTED_DECR_NA_1ST:
-                std::sort(sorted_buffer.begin(), sorted_buffer.end(), std::less_equal<T>());
+                std::sort(sorted_buffer.begin(), sorted_buffer.end(), std::greater_equal<T>());
                 break;
             default:
                 // TODO: throw exception?
