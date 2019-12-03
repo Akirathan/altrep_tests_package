@@ -204,9 +204,14 @@ bool ClassTests::testCoerce()
     CHECK( TYPEOF(coerced_vector) == REALSXP);
     CHECK( LENGTH(coerced_vector) == LENGTH(instance));
 
-    int default_flags = 16;
-    // TODO: Neni to moc slozity?
-    CHECK( R_compute_identical(instance, coerced_vector, default_flags));
+    // For INTEGER_ELT we need test_dataptr to pass.
+    for (int i = 0; i < LENGTH(instance); i++) {
+        int instance_elem = INTEGER_ELT(instance, i);
+        double coerced_elem = REAL_ELT(coerced_vector, i);
+        int casted_elem = static_cast<int>(std::floor(coerced_elem));
+        CHECK( instance_elem - 1 <= casted_elem && casted_elem <= instance_elem + 1);
+    }
+
     FINISH_TEST;
 }
 
@@ -222,15 +227,18 @@ bool ClassTests::testDuplicate()
         Rprintf("testDuplicate: duplicate (deep) not implemented via altrep, skipping test...\n");
         return false;
     }
-    int default_flags = 16;
-    // TODO: Shallow compute identical?
-    CHECK( R_compute_identical(instance, duplicated_instance, default_flags));
+    CHECK( Tests::areBuffersEqual(INTEGER(instance),
+                                  INTEGER(duplicated_instance),
+                                  LENGTH(instance)));
+
 
     SEXP shallow_duplicated_instance = shallow_duplicate(instance);
     if (duplicated_instance == R_NilValue) {
         Rprintf("testDuplicate: duplicate (shallow) not implemented via altrep, skipping test...\n");
         return false;
     }
-    CHECK( R_compute_identical(instance, shallow_duplicated_instance, default_flags));
+    CHECK( Tests::areBuffersEqual(INTEGER(instance),
+                                  INTEGER(shallow_duplicated_instance),
+                                  LENGTH(instance)));
     FINISH_TEST;
 }
