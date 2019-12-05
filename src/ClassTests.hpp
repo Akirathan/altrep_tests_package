@@ -23,7 +23,10 @@ private:
     static bool testGetMoreRegions();
     static bool testIsSortedUnknown();
     static bool testIsSortedIncreasing();
-    static bool testSum();
+    static bool testSumInt();
+    static bool testSumIntOverflow();
+    static bool testMin();
+    static bool testMax();
     static bool testCoerce();
     static bool testDuplicate();
 };

@@ -22,6 +22,8 @@ private:
     static int elt(SEXP instance, R_xlen_t idx);
     static R_xlen_t getRegion(SEXP instance, R_xlen_t from_idx, R_xlen_t size, int *buffer);
     static SEXP sumMethod(SEXP instance, Rboolean narm);
+    static SEXP minMethod(SEXP instance, Rboolean narm);
+    static SEXP maxMethod(SEXP instance, Rboolean narm);
     static SEXP getData(SEXP instance);
 };
 

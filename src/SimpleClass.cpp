@@ -1,6 +1,7 @@
 #include "SimpleClass.hpp"
 #include "altrep_include.hpp"
 #include <algorithm>
+#include <limits>
 
 R_altrep_class_t SimpleClass::descr;
 
@@ -18,6 +19,8 @@ void SimpleClass::init(DllInfo *info)
     R_set_altinteger_Elt_method(descr, SimpleClass::elt);
     R_set_altinteger_Get_region_method(descr, SimpleClass::getRegion);
     R_set_altinteger_Sum_method(descr, SimpleClass::sumMethod);
+    R_set_altinteger_Min_method(descr, SimpleClass::minMethod);
+    R_set_altinteger_Max_method(descr, SimpleClass::maxMethod);
 }
 
 R_altrep_class_t SimpleClass::getDescriptor()
@@ -80,6 +83,26 @@ SEXP SimpleClass::sumMethod(SEXP instance, Rboolean narm)
         sum += INTEGER_ELT(data, i);
     }
     return ScalarInteger(sum);
+}
+
+SEXP SimpleClass::minMethod(SEXP instance, Rboolean narm)
+{
+    SEXP data = getData(instance);
+    int min = std::numeric_limits<int>::max();
+    for (int i = 0; i < LENGTH(data); i++) {
+        min = std::min(min, INTEGER_ELT(data, i));
+    }
+    return ScalarInteger(min);
+}
+
+SEXP SimpleClass::maxMethod(SEXP instance, Rboolean narm)
+{
+    SEXP data = getData(instance);
+    int max = std::numeric_limits<int>::min();
+    for (int i = 0; i < LENGTH(data); i++) {
+        max = std::max(max, INTEGER_ELT(data, i));
+    }
+    return ScalarInteger(max);
 }
 
 SEXP SimpleClass::getData(SEXP instance)
