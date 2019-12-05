@@ -49,24 +49,25 @@ bool ClassTests::testLength()
 bool ClassTests::testSetElt()
 {
     INIT_TEST;
-    const int int_val = 42;
-    const int real_val = 42.0;
+    SKIP_IF_NOT( TYPEOF(instance) == INTSXP || TYPEOF(instance) == REALSXP);
     const void *data_ptr_old = DATAPTR(instance);
     const int idx = rand() % LENGTH(instance);
 
     switch (TYPEOF(instance)) {
-        case INTSXP:
+        case INTSXP: {
+            const int int_val = 42;
             SET_INTEGER_ELT(instance, idx, int_val);
             CHECK( INTEGER_ELT(instance, idx) == int_val);
             break;
+        }
 #ifndef FASTR
-        case REALSXP:
+        case REALSXP: {
+            const int real_val = 42.0;
             SET_REAL_ELT(instance, idx, real_val);
             CHECK( REAL_ELT(instance, idx) == real_val);
             break;
+        }
 #endif
-        default:
-            warning("_test_set_elt for type %s not yet implemented.\n", type2char(TYPEOF(instance)));
     }
 
     CHECK_MSG( data_ptr_old == DATAPTR(instance), "DATAPTR should be pointer to same address, ie. no new instance should be allocated.");
@@ -205,15 +206,15 @@ bool ClassTests::testCoerce()
     SKIP_IF_NOT( LENGTH(instance) > 10);
     SKIP_IF_NOT( TYPEOF(instance) == INTSXP);
 
+    // We cannot invoke ALTREP_COERCE, because it is internal, and coerceVector
+    // fallbacks to the default implementation if we do not provide a specific
+    // one.
     SEXP coerced_vector = coerceVector(instance, REALSXP);
-    if (coerced_vector == R_NilValue) {
-        Rprintf("testCoerce: coerce not implemented via altrep, skipping test...\n");
-        return false;
-    }
+    ASSERT( coerced_vector != NULL);
+    ASSERT( coerced_vector != R_NilValue);
     CHECK( TYPEOF(coerced_vector) == REALSXP);
     CHECK( LENGTH(coerced_vector) == LENGTH(instance));
 
-    // For INTEGER_ELT we need test_dataptr to pass.
     for (int i = 0; i < LENGTH(instance); i++) {
         int instance_elem = INTEGER_ELT(instance, i);
         double coerced_elem = REAL_ELT(coerced_vector, i);
@@ -227,25 +228,25 @@ bool ClassTests::testCoerce()
 /**
  * ALTREP_DUPLICATE is not called in GNU-R, only ALTREP_DUPLICATE_EX.
  * Called via duplicate or shallow_duplicate.
+ * 
+ * As in coerce there is no way to find out whether Duplicate method
+ * is overriden in this ALTREP instance, therefore we have to call
+ * duplicate public function.
+ * 
+ * See duplicate.c
  */
 bool ClassTests::testDuplicate()
 {
     INIT_TEST;
     SEXP duplicated_instance = duplicate(instance);
-    if (duplicated_instance == R_NilValue) {
-        Rprintf("testDuplicate: duplicate (deep) not implemented via altrep, skipping test...\n");
-        return false;
-    }
+    ASSERT( duplicated_instance != R_NilValue);
     CHECK( Tests::areBuffersEqual(INTEGER(instance),
                                   INTEGER(duplicated_instance),
                                   LENGTH(instance)));
 
 
     SEXP shallow_duplicated_instance = shallow_duplicate(instance);
-    if (duplicated_instance == R_NilValue) {
-        Rprintf("testDuplicate: duplicate (shallow) not implemented via altrep, skipping test...\n");
-        return false;
-    }
+    ASSERT( duplicated_instance != R_NilValue);
     CHECK( Tests::areBuffersEqual(INTEGER(instance),
                                   INTEGER(shallow_duplicated_instance),
                                   LENGTH(instance)));
