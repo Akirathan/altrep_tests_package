@@ -160,6 +160,12 @@ bool ClassTests::testIsSortedUnknown()
 {
     INIT_TEST;
     SKIP_IF_NOT( TYPEOF(instance) == INTSXP || TYPEOF(instance) == REALSXP);
+    SKIP_IF_NOT( LENGTH(instance) > 3);
+
+    // Set first few elements "randomly" so we get KNOWN_UNSORTED.
+    SET_INTEGER_ELT(instance, 0, 423);
+    SET_INTEGER_ELT(instance, 1, 13);
+    SET_INTEGER_ELT(instance, 2, 179);
 
     int sorted = UNKNOWN_SORTEDNESS;
     switch (TYPEOF(instance)) {
@@ -172,9 +178,11 @@ bool ClassTests::testIsSortedUnknown()
             break;
         }
     }
-    // From previous tests the items should be "random".
-    // TODO: Make this test more predictable.
-    CHECK( sorted == UNKNOWN_SORTEDNESS);
+    if (sorted == UNKNOWN_SORTEDNESS) {
+        Rprintf("%s: Is_sorted has default implementation, skipping rest of test...\n", __func__);
+        return true;
+    }
+    CHECK( sorted == KNOWN_UNSORTED);
     CHECK( Tests::isBufferSorted(INTEGER(instance), LENGTH(instance), sorted));
     FINISH_TEST;
 }

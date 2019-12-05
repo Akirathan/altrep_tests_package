@@ -2,6 +2,8 @@
 #include "altrep_include.hpp"
 #include <algorithm>
 #include <limits>
+#include <vector>
+#include <functional>
 
 R_altrep_class_t SimpleClass::descr;
 
@@ -21,6 +23,7 @@ void SimpleClass::init(DllInfo *info)
     R_set_altinteger_Sum_method(descr, SimpleClass::sumMethod);
     R_set_altinteger_Min_method(descr, SimpleClass::minMethod);
     R_set_altinteger_Max_method(descr, SimpleClass::maxMethod);
+    R_set_altinteger_Is_sorted_method(descr, SimpleClass::isSortedMethod);
 }
 
 R_altrep_class_t SimpleClass::getDescriptor()
@@ -103,6 +106,27 @@ SEXP SimpleClass::maxMethod(SEXP instance, Rboolean narm)
         max = std::max(max, INTEGER_ELT(data, i));
     }
     return ScalarInteger(max);
+}
+
+int SimpleClass::isSortedMethod(SEXP instance)
+{
+    SEXP data = getData(instance);
+
+    std::vector<int> vec(INTEGER(data), INTEGER(data) + LENGTH(data));
+    std::vector<int> sorted_vec_incr(vec);
+    std::vector<int> sorted_vec_decr(vec);
+    std::sort(sorted_vec_incr.begin(), sorted_vec_incr.end(), std::less_equal<int>());
+    std::sort(sorted_vec_decr.begin(), sorted_vec_decr.end(), std::greater_equal<int>());
+
+    if (vec == sorted_vec_incr) {
+        return SORTED_INCR;
+    }
+    else if (vec == sorted_vec_decr) {
+        return SORTED_DECR;
+    }
+    else {
+        return KNOWN_UNSORTED;
+    }
 }
 
 SEXP SimpleClass::getData(SEXP instance)

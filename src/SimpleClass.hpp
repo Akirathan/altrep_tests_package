@@ -24,6 +24,7 @@ private:
     static SEXP sumMethod(SEXP instance, Rboolean narm);
     static SEXP minMethod(SEXP instance, Rboolean narm);
     static SEXP maxMethod(SEXP instance, Rboolean narm);
+    static int isSortedMethod(SEXP instance);
     static SEXP getData(SEXP instance);
 };
 
