@@ -11,6 +11,7 @@ const std::vector< Test> ClassTests::tests = {
     {"test_get_one_region", testGetOneRegion},
     {"test_get_more_regions", testGetMoreRegions},
     {"test_is_sorted", testIsSorted},
+    {"test_sum", testSum},
     {"test_coerce", testCoerce, {"test_dataptr"}},
     {"test_duplicate", testDuplicate, {"test_dataptr"}}
 };
@@ -181,10 +182,18 @@ bool ClassTests::testSum()
     std::vector<int> vec(INTEGER(instance), INTEGER(instance) + length);
     int expected_sum = std::accumulate(vec.begin(), vec.end(), 0);
 
-    SEXP actual_sum_sexp = ALTINTEGER_SUM(instance, TRUE);
+    // Note that there is no other "public" way how to invoke sum on altrep instance.
+    // We could construct "sum" language element and evaluate it, but that would be
+    // too complicated for these tests.
+    // Therefore there is this "private" ALTINTEGER_SUM function call.
+    // EDIT: Note that we do not use ALTINTEGER_SUM, although it is not hidden.
+    SEXP sum_symbol = install("sum");
+    SEXP sum_call = lang2(sum_symbol, instance);
+    SEXP actual_sum_sexp = eval(sum_call, R_BaseEnv);
+    ASSERT( actual_sum_sexp != nullptr);
     CHECK( LENGTH(actual_sum_sexp) == 1);
     CHECK( TYPEOF(actual_sum_sexp) == INTSXP);
-    int actual_sum = INTEGER_ELT(actual_sum_sexp, 1);
+    int actual_sum = INTEGER_ELT(actual_sum_sexp, 0);
 
     CHECK( actual_sum == expected_sum);
     FINISH_TEST;

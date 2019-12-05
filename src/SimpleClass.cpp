@@ -17,6 +17,7 @@ void SimpleClass::init(DllInfo *info)
     // Override ALTINT methods.
     R_set_altinteger_Elt_method(descr, SimpleClass::elt);
     R_set_altinteger_Get_region_method(descr, SimpleClass::getRegion);
+    R_set_altinteger_Sum_method(descr, SimpleClass::sumMethod);
 }
 
 R_altrep_class_t SimpleClass::getDescriptor()
@@ -69,6 +70,16 @@ R_xlen_t SimpleClass::getRegion(SEXP instance, R_xlen_t from_idx, R_xlen_t size,
     int *data_ptr = INTEGER(data);
     memcpy(buffer, data_ptr + from_idx, size * sizeof(int));
     return size;
+}
+
+SEXP SimpleClass::sumMethod(SEXP instance, Rboolean narm)
+{
+    SEXP data = getData(instance);
+    int sum = 0;
+    for (int i = 0; i < LENGTH(data); i++) {
+        sum += INTEGER_ELT(data, i);
+    }
+    return ScalarInteger(sum);
 }
 
 SEXP SimpleClass::getData(SEXP instance)
