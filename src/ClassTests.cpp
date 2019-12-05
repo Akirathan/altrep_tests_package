@@ -10,7 +10,8 @@ const std::vector< Test> ClassTests::tests = {
     {"test_dataptr", testDataptr},
     {"test_get_one_region", testGetOneRegion},
     {"test_get_more_regions", testGetMoreRegions},
-    {"test_is_sorted", testIsSorted},
+    {"test_is_sorted_unknown", testIsSortedUnknown},
+    {"test_is_sorted_increasing", testIsSortedIncreasing},
     {"test_sum", testSum},
     {"test_coerce", testCoerce, {"test_dataptr"}},
     {"test_duplicate", testDuplicate, {"test_dataptr"}}
@@ -149,23 +150,53 @@ bool ClassTests::testGetMoreRegions()
     FINISH_TEST;
 }
 
-bool ClassTests::testIsSorted()
+bool ClassTests::testIsSortedUnknown()
 {
     INIT_TEST;
     SKIP_IF_NOT( TYPEOF(instance) == INTSXP || TYPEOF(instance) == REALSXP);
 
+    int sorted = UNKNOWN_SORTEDNESS;
     switch (TYPEOF(instance)) {
         case INTSXP: {
-            int sorted = INTEGER_IS_SORTED(instance);
-            CHECK( Tests::isBufferSorted(INTEGER(instance), LENGTH(instance), sorted));
+            sorted = INTEGER_IS_SORTED(instance);
             break;
         }
         case REALSXP: {
-            int sorted = REAL_IS_SORTED(instance);
-            CHECK( Tests::isBufferSorted(REAL(instance), LENGTH(instance), sorted));
+            sorted = REAL_IS_SORTED(instance);
             break;
         }
     }
+    // From previous tests the items should be "random".
+    // TODO: Make this test more predictable.
+    CHECK( sorted == UNKNOWN_SORTEDNESS);
+    CHECK( Tests::isBufferSorted(INTEGER(instance), LENGTH(instance), sorted));
+    FINISH_TEST;
+}
+
+bool ClassTests::testIsSortedIncreasing()
+{
+    INIT_TEST;
+    SKIP_IF_NOT( TYPEOF(instance) == INTSXP || TYPEOF(instance) == REALSXP);
+
+    for (int i = 0; i < LENGTH(instance); i++) {
+        SET_INTEGER_ELT(instance, i, i);
+    }
+
+    int sorted_mode = UNKNOWN_SORTEDNESS;
+    switch (TYPEOF(instance)) {
+        case INTSXP:
+            sorted_mode = INTEGER_IS_SORTED(instance);
+            break;
+        case REALSXP:
+            sorted_mode = REAL_IS_SORTED(instance);
+            break;
+    }
+    if (sorted_mode == UNKNOWN_SORTEDNESS) {
+        Rprintf("%s: Is_sorted has default implementation, skipping rest of test...\n", __func__);
+        return true;
+    }
+    CHECK( sorted_mode == SORTED_INCR);
+    CHECK( Tests::isBufferSorted(INTEGER(instance), LENGTH(instance), sorted_mode));
     FINISH_TEST;
 }
 

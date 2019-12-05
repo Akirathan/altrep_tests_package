@@ -21,7 +21,8 @@ private:
     static bool testDataptr();
     static bool testGetOneRegion();
     static bool testGetMoreRegions();
-    static bool testIsSorted();
+    static bool testIsSortedUnknown();
+    static bool testIsSortedIncreasing();
     static bool testSum();
     static bool testCoerce();
     static bool testDuplicate();
