@@ -65,7 +65,7 @@ int SimpleClass::elt(SEXP instance, R_xlen_t idx)
 R_xlen_t SimpleClass::getRegion(SEXP instance, R_xlen_t from_idx, R_xlen_t size, int *buffer)
 {
     SEXP data = getData(instance);
-    if ((size >= vec_len) ||
+    if ((size > vec_len) ||
         (!(0 <= from_idx && from_idx < vec_len)) ||
         buffer == nullptr ||
         TYPEOF(data) != INTSXP)
