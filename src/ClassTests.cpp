@@ -225,11 +225,9 @@ bool ClassTests::testSumInt()
     }
     int expected_sum = LENGTH(instance);
 
-    // Note that there is no other "public" way how to invoke sum on altrep instance.
-    // We could construct "sum" language element and evaluate it, but that would be
-    // too complicated for these tests.
-    // Therefore there is this "private" ALTINTEGER_SUM function call.
-    // EDIT: Note that we do not use ALTINTEGER_SUM, although it is not hidden.
+    // Note that there is nothing like Rf_sum that we could use from the native
+    // side, so we are forced to call eval here. In fact, there is ALTINTEGER_SUM
+    // function that is not hidden, but this will probably change.
     SEXP sum_symbol = install("sum");
     SEXP sum_call = lang2(sum_symbol, instance);
     SEXP actual_sum_sexp = eval(sum_call, R_BaseEnv);
@@ -242,6 +240,7 @@ bool ClassTests::testSumInt()
     FINISH_TEST;
 }
 
+// TODO: Fix this test - it does not trigger integer overflow.
 bool ClassTests::testSumIntOverflow()
 {
     INIT_TEST;
