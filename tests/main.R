@@ -33,6 +33,10 @@ test_simple_class <- function() {
     altrep_simple_class_tests()
 }
 
+test_simple_string_class <- function() {
+    altrep_simple_string_class_tests()
+}
+
 test_simplemmap <- function() {
     stopifnot(require("simplemmap"))
     FILE_SIZE <- 20
@@ -59,7 +63,8 @@ ONLY_ONE_TEST <- FALSE
 TESTS <- list(
     list("test_framework (native)", test_framework),
     list("test_simple_class (native)", test_simple_class),
-    list("test_simplemmap", test_simplemmap)
+    list("test_simplemmap", test_simplemmap),
+    list("test_simple_string_class (native)", test_simple_string_class)
 )
 ONE_TEST <- list(list("test_simplemmap", test_simplemmap))
 

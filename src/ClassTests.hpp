@@ -18,11 +18,14 @@ private:
     static void afterRunAll();
     static bool testLength();
     static bool testSetElt();
+    static bool testSetEltString();
     static bool testDataptr();
+    static bool testStringIterate();
     static bool testDataptrRemainsSame();
     static bool testGetOneRegion();
     static bool testGetMoreRegions();
     static bool testIsSortedUnknown();
+    static bool testIsSortedUnknownString();
     static bool testIsSortedIncreasing();
     static bool testSumInt();
     static bool testSumIntOverflow();

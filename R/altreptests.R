@@ -11,6 +11,14 @@ altrep_simple_class_tests <- function() {
     .Call("simple_class_tests")
 }
 
+altrep_simple_string_class_tests <- function() {
+    .Call("simple_string_class_tests")
+}
+
 altrep_simple_class_ctor <- function() {
     .Call("simple_class_ctor")
+}
+
+altrep_simple_string_class_ctor <- function() {
+    .Call("simple_string_class_ctor")
 }

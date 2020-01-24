@@ -9,11 +9,14 @@
 const std::vector< Test> ClassTests::tests = {
     {"test_length", testLength},
     {"test_set_elt", testSetElt},
+    {"test_set_elt_string", testSetEltString},
     {"test_dataptr", testDataptr},
+    {"test_string_iterate", testStringIterate},
     {"test_dataptr_remains_same", testDataptrRemainsSame},
     {"test_get_one_region", testGetOneRegion},
     {"test_get_more_regions", testGetMoreRegions},
     {"test_is_sorted_unknown", testIsSortedUnknown},
+    {"test_is_sorted_unknown_string", testIsSortedUnknownString},
     {"test_is_sorted_increasing", testIsSortedIncreasing},
     {"test_sum_int", testSumInt},
     // TODO: sumIntOverflow does not function as expected
@@ -83,6 +86,32 @@ bool ClassTests::testSetElt()
     FINISH_TEST;
 }
 
+bool ClassTests::testSetEltString()
+{
+    INIT_TEST;
+    SKIP_IF_NOT( TYPEOF(instance) == STRSXP);
+    SKIP_IF_NOT( LENGTH(instance) >= 2);
+
+    SEXP str_val = PROTECT(Rf_mkChar("Ahoj"));
+
+    // Set CHARSXP element in conventional way (via SET_STRING_ELT function).
+    SET_STRING_ELT(instance, 0, str_val);
+    SEXP str_elt = STRING_ELT(instance, 0);
+    ASSERT( TYPEOF(str_elt) == CHARSXP);
+    CHECK( std::strcmp(Rf_translateChar(str_elt), "Ahoj") == 0);
+
+    // This may cause some problems with write barrier, but we do not care about
+    // it here.
+    SEXP *data = STRING_PTR(instance);
+    data[1] = str_val;
+    str_elt = STRING_ELT(instance, 1);
+    ASSERT( TYPEOF(str_elt) == CHARSXP);
+    CHECK( std::strcmp(Rf_translateChar(str_elt), "Ahoj") == 0);
+
+    UNPROTECT(1);
+    FINISH_TEST;
+}
+
 /**
  * Very simple test of dataptr - we grab a pointer to native memory via Dataptr, then
  * modify some values inside native memory and check whether next invocation of
@@ -91,21 +120,42 @@ bool ClassTests::testSetElt()
 bool ClassTests::testDataptr()
 {
     INIT_TEST;
+    SKIP_IF_NOT( TYPEOF(instance) != STRSXP);
     const void *dataptr_old = DATAPTR(instance);
-    const int length = LENGTH(instance);
+    const int len = LENGTH(instance);
 
     SKIP_IF_NOT( TYPEOF(instance) == INTSXP);
 
     int *dataptr = INTEGER(instance);
-    for (int i = 0; i < length; i++) {
+    for (int i = 0; i < len; i++) {
         dataptr[i] = i;
     }
 
-    for (int i = 0; i < length; i++) {
+    for (int i = 0; i < len; i++) {
         CHECK( INTEGER_ELT(instance, i) == i);
     }
 
     CHECK_MSG( dataptr_old == DATAPTR(instance), "DATAPTR should be pointer to same address, ie. no new instance should be allocated.");
+    FINISH_TEST;
+}
+
+/**
+ * Tests iteration over CHARSXP elements of one STRSXP.
+ */
+bool ClassTests::testStringIterate()
+{
+    INIT_TEST;
+    SKIP_IF_NOT( TYPEOF(instance) == STRSXP);
+
+    SEXP *data = STRING_PTR(instance);
+    for (R_xlen_t i = 0; i < LENGTH(instance); i++) {
+        CHECK( TYPEOF(data[i]) == CHARSXP);
+    }
+
+    for (R_xlen_t i = 0; i < LENGTH(instance); i++) {
+        CHECK( TYPEOF(STRING_ELT(instance, i)) == CHARSXP);
+    }
+
     FINISH_TEST;
 }
 
@@ -126,6 +176,7 @@ bool ClassTests::testDataptr()
 bool ClassTests::testDataptrRemainsSame()
 {
     INIT_TEST;
+    SKIP_IF_NOT( TYPEOF(instance) != STRSXP);
     const void *dataptr_old = DATAPTR(instance);
 
     Rf_eval( Rf_lang2(Rf_install("sum"), instance), R_BaseEnv);
@@ -229,6 +280,26 @@ bool ClassTests::testIsSortedUnknown()
     CHECK( sorted == KNOWN_UNSORTED);
     // TODO: This CHECK is unnecessary.
     CHECK( Tests::isBufferSorted(INTEGER(instance), LENGTH(instance), sorted));
+    FINISH_TEST;
+}
+
+bool ClassTests::testIsSortedUnknownString()
+{
+    INIT_TEST;
+    SKIP_IF_NOT( TYPEOF(instance) == STRSXP);
+    SKIP_IF_NOT( LENGTH(instance) > 3);
+
+    // Set first few elements "randomly" so we get KNOWN_UNSORTED.
+    SET_STRING_ELT(instance, 0, Rf_mkChar("xxx"));
+    SET_STRING_ELT(instance, 1, Rf_mkChar("aaa"));
+    SET_STRING_ELT(instance, 2, Rf_mkChar("zzz"));
+
+    int sorted = STRING_IS_SORTED(instance);
+    if (sorted == UNKNOWN_SORTEDNESS) {
+        Rprintf("%s: Is_sorted has default implementation, skipping rest of test...\n", __func__);
+        return true;
+    }
+    CHECK( sorted == KNOWN_UNSORTED);
     FINISH_TEST;
 }
 
@@ -401,6 +472,7 @@ bool ClassTests::testCoerce()
 bool ClassTests::testDuplicate()
 {
     INIT_TEST;
+    SKIP_IF_NOT( TYPEOF(instance) == INTSXP);
     SEXP duplicated_instance = duplicate(instance);
     ASSERT( duplicated_instance != R_NilValue);
     CHECK( Tests::areBuffersEqual(INTEGER(instance),
