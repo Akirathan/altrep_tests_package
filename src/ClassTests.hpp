@@ -19,6 +19,7 @@ private:
     static bool testLength();
     static bool testSetElt();
     static bool testDataptr();
+    static bool testDataptrRemainsSame();
     static bool testGetOneRegion();
     static bool testGetMoreRegions();
     static bool testIsSortedUnknown();

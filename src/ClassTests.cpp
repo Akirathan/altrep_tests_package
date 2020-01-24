@@ -10,6 +10,7 @@ const std::vector< Test> ClassTests::tests = {
     {"test_length", testLength},
     {"test_set_elt", testSetElt},
     {"test_dataptr", testDataptr},
+    {"test_dataptr_remains_same", testDataptrRemainsSame},
     {"test_get_one_region", testGetOneRegion},
     {"test_get_more_regions", testGetMoreRegions},
     {"test_is_sorted_unknown", testIsSortedUnknown},
@@ -37,6 +38,7 @@ void ClassTests::beforeRunAll(SEXP _instance)
 {
     instance = _instance;
     ASSERT( ALTREP(instance));
+    // TODO: ASSERT( !MAYBE_SHARED(instance));
     R_PreserveObject(instance);
     std::srand(42);
 }
@@ -81,6 +83,11 @@ bool ClassTests::testSetElt()
     FINISH_TEST;
 }
 
+/**
+ * Very simple test of dataptr - we grab a pointer to native memory via Dataptr, then
+ * modify some values inside native memory and check whether next invocation of
+ * Dataptr method returns same pointer.
+ */
 bool ClassTests::testDataptr()
 {
     INIT_TEST;
@@ -99,6 +106,43 @@ bool ClassTests::testDataptr()
     }
 
     CHECK_MSG( dataptr_old == DATAPTR(instance), "DATAPTR should be pointer to same address, ie. no new instance should be allocated.");
+    FINISH_TEST;
+}
+
+/**
+ * At the beggining we get a pointer to native memory via Dataptr method. Then we
+ * do as much side effects on the altrep instance as possible - by invoking
+ * various methods from that altrep instance, for example Sum, Min, etc.
+ * 
+ * The contract here is that DATAPTR(instance) should return same pointer as long
+ * as instance is the same object.
+ * 
+ * This contract is trivially accomplished by for example integer vectors - for
+ * those DATAPTR simply does some pointer arithmetics. However, for altrep
+ * vectors this does not have to be true anymore. Theoretically, altrep vector
+ * can return different pointer in every invocation of Dataptr, which is breaks
+ * the whole idea of immutability in R.
+ */
+bool ClassTests::testDataptrRemainsSame()
+{
+    INIT_TEST;
+    const void *dataptr_old = DATAPTR(instance);
+
+    Rf_eval( Rf_lang2(Rf_install("sum"), instance), R_BaseEnv);
+    CHECK(dataptr_old == DATAPTR(instance));
+
+    Rf_eval( Rf_lang2(Rf_install("max"), instance), R_BaseEnv);
+    CHECK(dataptr_old == DATAPTR(instance));
+
+    Rf_eval( Rf_lang2(Rf_install("min"), instance), R_BaseEnv);
+    CHECK(dataptr_old == DATAPTR(instance));
+
+    Rf_coerceVector(instance, REALSXP);
+    CHECK(dataptr_old == DATAPTR(instance));
+
+    Rf_duplicate(instance);
+    CHECK(dataptr_old == DATAPTR(instance));
+
     FINISH_TEST;
 }
 
@@ -183,6 +227,7 @@ bool ClassTests::testIsSortedUnknown()
         return true;
     }
     CHECK( sorted == KNOWN_UNSORTED);
+    // TODO: This CHECK is unnecessary.
     CHECK( Tests::isBufferSorted(INTEGER(instance), LENGTH(instance), sorted));
     FINISH_TEST;
 }
