@@ -7,7 +7,8 @@ const std::vector< Test> FrameworkTests::tests = {
     {"test_struct_header", testStructHeader},
     {"test_instance_data", testInstanceData},
     {"test_modify_instance_data", testModifyInstanceData},
-    {"test_set_instance_data", testSetInstanceData}
+    {"test_set_instance_data", testSetInstanceData},
+    {"test_two_instances", testTwoInstances}
 };
 R_altrep_class_t FrameworkTests::simple_descr;
 
@@ -91,5 +92,69 @@ bool FrameworkTests::testSetInstanceData()
     CHECK( R_compute_identical(APIWrapper::R_altrep_data2(instance), lgl_vec, default_flags));
 
     UNPROTECT(3);
+    FINISH_TEST;
+}
+
+static R_xlen_t global_length = 0;
+static void * dataptr_method(SEXP instance, Rboolean writeabble) { return nullptr; }
+static R_xlen_t length_method(SEXP instance) {
+    global_length++;
+    return global_length;
+}
+/**
+ * Tests length of two instances of same class. Moreover the Length altrep method does
+ * some side effects (writes to global variable), so it is important that this method
+ * is called just twice for each LENGTH upcall.
+ */
+bool FrameworkTests::testTwoInstances()
+{
+    INIT_TEST;
+// TODO: Fix this for FastR
+#ifndef FASTR
+    R_altrep_class_t descr = R_make_altinteger_class("try_class", "try", nullptr);
+    R_set_altrep_Length_method(descr, &length_method);
+    R_set_altvec_Dataptr_method(descr, &dataptr_method);
+
+    SEXP instance1 = R_new_altrep(descr, R_NilValue, R_NilValue);
+    SEXP instance2 = R_new_altrep(descr, R_NilValue, R_NilValue);
+    CHECK( LENGTH(instance1) == 1);
+    CHECK( LENGTH(instance2) == 2);
+#endif
+    FINISH_TEST;
+}
+
+
+
+static void *dataptr_method_2(SEXP instance, Rboolean writeabble) {
+    return DATAPTR(R_altrep_data1(instance));
+}
+static R_xlen_t length_method_2(SEXP instance) { return 1; }
+/**
+ * Tests that one DATAPTR call in AST should be able to return two different values.
+ */
+bool FrameworkTests::testDifferentDataptrValue()
+{
+    INIT_TEST;
+    R_altrep_class_t descr = R_make_altinteger_class("try_class", "try", nullptr);
+    R_set_altrep_Length_method(descr, &length_method_2);
+    R_set_altvec_Dataptr_method(descr, &dataptr_method_2);
+
+    SEXP data1 = ScalarInteger(223);
+    SEXP data2 = ScalarInteger(42);
+    SEXP instance1 = R_new_altrep(descr, data1, R_NilValue);
+    SEXP instance2 = R_new_altrep(descr, data2, R_NilValue);
+
+    void *first_dataptr = nullptr;
+    void *second_dataptr = nullptr;
+    for (int i = 0; i < 2; i++) {
+        SEXP instance = i == 0 ? instance1 : instance2;
+        // This DATAPTR call returns two different values in two different invocations,
+        // but from AST perspective this is still the same DATAPTR call.
+        void *dataptr = DATAPTR(instance);
+        first_dataptr = i == 0 ? dataptr : nullptr;
+        second_dataptr = i == 1 ? dataptr : nullptr;
+    }
+    CHECK( first_dataptr != second_dataptr);
+
     FINISH_TEST;
 }

@@ -20,6 +20,8 @@ private:
     static bool testInstanceData();
     static bool testModifyInstanceData();
     static bool testSetInstanceData();
+    static bool testTwoInstances();
+    static bool testDifferentDataptrValue();
 };
 
 #endif // FRAMEWORK_TESTS_HPP_
