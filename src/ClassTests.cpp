@@ -92,23 +92,20 @@ bool ClassTests::testSetEltString()
     SKIP_IF_NOT( TYPEOF(instance) == STRSXP);
     SKIP_IF_NOT( LENGTH(instance) >= 2);
 
-    SEXP str_val = PROTECT(Rf_mkChar("Ahoj"));
-
     // Set CHARSXP element in conventional way (via SET_STRING_ELT function).
-    SET_STRING_ELT(instance, 0, str_val);
+    SET_STRING_ELT(instance, 0, Rf_mkChar("Ahoj0"));
     SEXP str_elt = STRING_ELT(instance, 0);
     ASSERT( TYPEOF(str_elt) == CHARSXP);
-    CHECK( std::strcmp(Rf_translateChar(str_elt), "Ahoj") == 0);
+    CHECK( std::strcmp(Rf_translateChar(str_elt), "Ahoj0") == 0);
 
     // This may cause some problems with write barrier, but we do not care about
     // it here.
     SEXP *data = STRING_PTR(instance);
-    data[1] = str_val;
+    data[1] = Rf_mkChar("Ahoj1");
     str_elt = STRING_ELT(instance, 1);
     ASSERT( TYPEOF(str_elt) == CHARSXP);
-    CHECK( std::strcmp(Rf_translateChar(str_elt), "Ahoj") == 0);
+    CHECK( std::strcmp(Rf_translateChar(str_elt), "Ahoj1") == 0);
 
-    UNPROTECT(1);
     FINISH_TEST;
 }
 
