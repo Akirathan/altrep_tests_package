@@ -1,9 +1,9 @@
 useDynLib(altreptests, .registration = TRUE, .fixes="CXX_")
 
-export(altrep_class_tests,
+export(
+       is.altrep,
+       altrep_class_tests,
        altrep_framework_tests,
-       altrep_simple_class_tests,
-       altrep_simple_string_class_tests,
-       altrep_simple_class_ctor,
-       altrep_simple_string_class_ctor
+       simple_class.new,
+       altrep_simple_string_class.new
        )

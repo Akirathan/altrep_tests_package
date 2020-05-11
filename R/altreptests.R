@@ -1,24 +1,27 @@
 
-altrep_class_tests <- function(instance) {
-    .Call("class_tests", instance)
+is.altrep <- function(x) {
+    .Call("is_altrep", x)
+}
+
+altrep_class_tests <- function(factory_method) {
+    if (!is.language(factory_method)) {
+        stop("Parameter factory method is not language")
+    }
+    x <- eval(factory_method)
+    if (!is.altrep(x)) {
+        stop("Instance created by 'eval(factory_method)' is not altrep")
+    }
+    .Call("class_tests", factory_method, parent.frame())
 }
 
 altrep_framework_tests <- function() {
     .Call("framework_tests")
 }
 
-altrep_simple_class_tests <- function() {
-    .Call("simple_class_tests")
+simple_class.new <- function() {
+    .Call("simple_class_new")
 }
 
-altrep_simple_string_class_tests <- function() {
-    .Call("simple_string_class_tests")
-}
-
-altrep_simple_class_ctor <- function() {
-    .Call("simple_class_ctor")
-}
-
-altrep_simple_string_class_ctor <- function() {
-    .Call("simple_string_class_ctor")
+altrep_simple_string_class.new <- function() {
+    .Call("simple_string_class_new")
 }

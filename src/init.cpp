@@ -6,18 +6,14 @@
 #include "ClassTests.hpp"
 #include "FrameworkTests.hpp"
 
-
-static SEXP simple_class_tests();
-static SEXP simple_string_class_tests();
-static SEXP simple_class_ctor();
+static SEXP is_altrep(SEXP x);
 
 static const R_CallMethodDef CallEntries[] = {
+        {"is_altrep", (DL_FUNC) &is_altrep, 1},
         {"framework_tests", (DL_FUNC) &FrameworkTests::run, 0},
-        {"class_tests", (DL_FUNC) &ClassTests::runAll, 1},
-        {"simple_class_tests", (DL_FUNC) &simple_class_tests, 0},
-        {"simple_string_class_tests", (DL_FUNC) &simple_string_class_tests, 0},
-        {"simple_class_ctor", (DL_FUNC) &simple_class_ctor, 0},
-        {"simple_string_class_ctor", (DL_FUNC) &SimpleStringClass::createInstance, 0},
+        {"class_tests", (DL_FUNC) &ClassTests::runAll, 2},
+        {"simple_class_new", (DL_FUNC) &SimpleClass::createInstance, 0},
+        {"simple_string_class_new", (DL_FUNC) &SimpleStringClass::createInstance, 0},
         {NULL, NULL, 0}
 };
 
@@ -28,23 +24,12 @@ extern "C" void R_init_altreptests(DllInfo *dll)
     R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
 }
 
-static SEXP simple_class_tests()
+SEXP is_altrep(SEXP x)
 {
-    SEXP instance = PROTECT(SimpleClass::createInstance());
-    bool succ = ClassTests::runAll(instance);
-    UNPROTECT(1);
-    return ScalarLogical(succ);
-}
-
-static SEXP simple_string_class_tests()
-{
-    SEXP instance = PROTECT(SimpleStringClass::createInstance());
-    bool succ = ClassTests::runAll(instance);
-    UNPROTECT(1);
-    return ScalarLogical(succ);
-}
-
-static SEXP simple_class_ctor()
-{
-    return SimpleClass::createInstance();
+    if (ALTREP(x)) {
+        return ScalarLogical(TRUE);
+    }
+    else {
+        return ScalarLogical(FALSE);
+    }
 }

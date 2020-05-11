@@ -8,13 +8,14 @@
 // TODO: Convert to non-static class.
 class ClassTests {
 public:
-    static SEXP runAll(SEXP instance);
+    static SEXP runAll(SEXP factory_method, SEXP rho);
 
 private:
     static const std::vector< Test> tests;
-    static SEXP instance;
+    static SEXP m_factory_method_call;
+    static SEXP m_rho;
 
-    static void beforeRunAll(SEXP instance);
+    static void beforeRunAll(SEXP instance, SEXP rho);
     static void afterRunAll();
     static bool testLength();
     static bool testSetElt();

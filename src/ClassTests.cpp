@@ -6,6 +6,16 @@
 #include <limits>
 #include <iostream>
 
+#define INIT_TEST \
+    bool __result = true; \
+    SEXP instance = Rf_eval(m_factory_method_call, m_rho); \
+    PROTECT(instance);
+
+#define FINISH_TEST \
+    UNPROTECT(1); \
+    return __result;
+
+
 const std::vector< Test> ClassTests::tests = {
     {"test_length", testLength},
     {"test_set_elt", testSetElt},
@@ -26,29 +36,40 @@ const std::vector< Test> ClassTests::tests = {
     {"test_coerce", testCoerce, {"test_dataptr"}},
     {"test_duplicate", testDuplicate, {"test_dataptr"}}
 };
-SEXP ClassTests::instance;
+SEXP ClassTests::m_factory_method_call;
+SEXP ClassTests::m_rho;
 
 
-SEXP ClassTests::runAll(SEXP instance)
+SEXP ClassTests::runAll(SEXP factory_method, SEXP rho)
 {
-    beforeRunAll(instance);
+    beforeRunAll(factory_method, rho);
     bool succ = Tests::runAll(tests);
     afterRunAll();
     return ScalarLogical(succ);
 }
 
-void ClassTests::beforeRunAll(SEXP _instance)
+void ClassTests::beforeRunAll(SEXP factory_method, SEXP rho)
 {
-    instance = _instance;
-    ASSERT( ALTREP(instance));
-    // TODO: ASSERT( !MAYBE_SHARED(instance));
-    R_PreserveObject(instance);
+    if (TYPEOF(factory_method) != LANGSXP) {
+        Rf_error("Expected type of factory_method LANGSXP\n");
+    }
+    if (TYPEOF(rho) != ENVSXP) {
+        Rf_error("Expected type of rho is environment\n");
+    }
+
     std::srand(42);
+
+    m_factory_method_call = factory_method;
+    m_rho = rho;
+    // Try to create an instance.
+    SEXP instance = PROTECT(Rf_eval(m_factory_method_call, m_rho));
+    ASSERT( ALTREP(instance));
+    UNPROTECT(1);
 }
 
 void ClassTests::afterRunAll()
 {
-    R_ReleaseObject(instance);
+    // Do nothing
 }
 
 bool ClassTests::testLength()
@@ -167,7 +188,7 @@ bool ClassTests::testStringIterate()
  * This contract is trivially accomplished by for example integer vectors - for
  * those DATAPTR simply does some pointer arithmetics. However, for altrep
  * vectors this does not have to be true anymore. Theoretically, altrep vector
- * can return different pointer in every invocation of Dataptr, which is breaks
+ * can return different pointer in every invocation of Dataptr, which breaks
  * the whole idea of immutability in R.
  */
 bool ClassTests::testDataptrRemainsSame()
