@@ -17,6 +17,10 @@ private:
 
     static void beforeRunAll(SEXP instance, SEXP rho);
     static void afterRunAll();
+    static bool isWritable(SEXP instance);
+    template <typename T>
+    static std::vector<T> copyData(SEXP instance);
+
     static bool testLength();
     static bool testSetElt();
     static bool testSetEltString();
@@ -31,7 +35,6 @@ private:
     static bool testIsSortedIncreasing();
     static bool testSumIntWithPreset();
     static bool testSumIntWithoutPreset();
-    static bool testSumIntOverflow();
     static bool testMinWithPreset();
     static bool testMinWithoutPreset();
     static bool testMaxWithPreset();

@@ -32,8 +32,6 @@ const std::vector< Test> ClassTests::tests = {
     {"test_is_sorted_increasing", testIsSortedIncreasing},
     {"test_sum_int_with_preset", testSumIntWithPreset},
     {"test_sum_int_without_preset", testSumIntWithoutPreset},
-    // TODO: sumIntOverflow does not function as expected
-    // {"test_sum_int_overflow", testSumIntOverflow},
     {"test_min_with_preset", testMinWithPreset},
     {"test_min_without_preset", testMinWithoutPreset},
     {"test_max_with_preset", testMaxWithPreset},
@@ -77,6 +75,38 @@ void ClassTests::afterRunAll()
     // Do nothing
 }
 
+bool ClassTests::isWritable(SEXP instance)
+{
+    if (DATAPTR_OR_NULL(instance) == nullptr) {
+        return false;
+    }
+    else {
+        return true;
+    }
+}
+
+/**
+ * Copy of data that is friendly for read-only altrep vectors ie. it does not invoke
+ * Dataptr.
+ */
+template <typename T>
+std::vector<T> ClassTests::copyData(SEXP instance)
+{
+    std::vector<T> vec(LENGTH(instance));
+    for (size_t i = 0; i < LENGTH(instance); i++) {
+        switch (TYPEOF(instance)) {
+            case INTSXP:
+                vec.push_back(INTEGER_ELT(instance, i));
+                break;
+            case REALSXP:
+                vec.push_back(REAL_ELT(instance, i));
+                break;
+        }
+    }
+    return vec;
+}
+
+
 bool ClassTests::testLength()
 {
     INIT_TEST;
@@ -88,6 +118,7 @@ bool ClassTests::testSetElt()
 {
     INIT_TEST;
     SKIP_IF_NOT( TYPEOF(instance) == INTSXP || TYPEOF(instance) == REALSXP);
+    SKIP_IF_NOT( isWritable(instance));
     const void *data_ptr_old = DATAPTR(instance);
     const int idx = rand() % LENGTH(instance);
 
@@ -117,6 +148,7 @@ bool ClassTests::testSetEltString()
     INIT_TEST;
     SKIP_IF_NOT( TYPEOF(instance) == STRSXP);
     SKIP_IF_NOT( LENGTH(instance) >= 2);
+    SKIP_IF_NOT( isWritable(instance));
 
     // Set CHARSXP element in conventional way (via SET_STRING_ELT function).
     SET_STRING_ELT(instance, 0, Rf_mkChar("Ahoj0"));
@@ -144,6 +176,7 @@ bool ClassTests::testDataptr()
 {
     INIT_TEST;
     SKIP_IF_NOT( TYPEOF(instance) != STRSXP);
+    SKIP_IF_NOT( isWritable(instance));
     const void *dataptr_old = DATAPTR(instance);
     const int len = LENGTH(instance);
 
@@ -169,6 +202,7 @@ bool ClassTests::testStringIterate()
 {
     INIT_TEST;
     SKIP_IF_NOT( TYPEOF(instance) == STRSXP);
+    SKIP_IF_NOT( isWritable(instance));
 
     SEXP *data = STRING_PTR(instance);
     for (R_xlen_t i = 0; i < LENGTH(instance); i++) {
@@ -200,6 +234,7 @@ bool ClassTests::testDataptrRemainsSame()
 {
     INIT_TEST;
     SKIP_IF_NOT( TYPEOF(instance) != STRSXP);
+    SKIP_IF_NOT( isWritable(instance));
     const void *dataptr_old = DATAPTR(instance);
 
     Rf_eval( Rf_lang2(Rf_install("sum"), instance), R_BaseEnv);
@@ -225,6 +260,7 @@ bool ClassTests::testGetOneRegion()
     INIT_TEST;
     SKIP_IF_NOT( TYPEOF(instance) == INTSXP);
     SKIP_IF_NOT( LENGTH(instance) > 5);
+    SKIP_IF_NOT( isWritable(instance));
 
     SET_INTEGER_ELT(instance, 1, 1);
     SET_INTEGER_ELT(instance, 2, 2);
@@ -242,6 +278,7 @@ bool ClassTests::testGetMoreRegions()
     INIT_TEST;
     SKIP_IF_NOT( TYPEOF(instance) == INTSXP);
     SKIP_IF_NOT( LENGTH(instance) > 10);
+    SKIP_IF_NOT( isWritable(instance));
 
     // idx  =  0 1 2 3 4 5 6 7 8 9
     // vals = [x 1 1 1 x x x 2 2 2]
@@ -279,6 +316,7 @@ bool ClassTests::testIsSortedUnknown()
     INIT_TEST;
     SKIP_IF_NOT( TYPEOF(instance) == INTSXP || TYPEOF(instance) == REALSXP);
     SKIP_IF_NOT( LENGTH(instance) > 3);
+    SKIP_IF_NOT( isWritable(instance));
 
     // Set first few elements "randomly" so we get KNOWN_UNSORTED.
     SET_INTEGER_ELT(instance, 0, 423);
@@ -313,7 +351,7 @@ bool ClassTests::testSortedness()
     SKIP_IF_NOT( TYPEOF(instance) == INTSXP);
 
     int sorted = INTEGER_IS_SORTED(instance);
-    std::vector<int> vec(INTEGER(instance), INTEGER(instance) + LENGTH(instance));
+    std::vector<int> vec = copyData<int>(instance);
 
     bool is_sorted = std::is_sorted(vec.cbegin(), vec.cend());
     if (sorted == UNKNOWN_SORTEDNESS) {
@@ -339,6 +377,7 @@ bool ClassTests::testIsSortedUnknownString()
     INIT_TEST;
     SKIP_IF_NOT( TYPEOF(instance) == STRSXP);
     SKIP_IF_NOT( LENGTH(instance) > 3);
+    SKIP_IF_NOT( isWritable(instance));
 
     // Set first few elements "randomly" so we get KNOWN_UNSORTED.
     SET_STRING_ELT(instance, 0, Rf_mkChar("xxx"));
@@ -358,6 +397,7 @@ bool ClassTests::testIsSortedIncreasing()
 {
     INIT_TEST;
     SKIP_IF_NOT( TYPEOF(instance) == INTSXP || TYPEOF(instance) == REALSXP);
+    SKIP_IF_NOT( isWritable(instance));
 
     for (int i = 0; i < LENGTH(instance); i++) {
         SET_INTEGER_ELT(instance, i, i);
@@ -384,8 +424,9 @@ bool ClassTests::testIsSortedIncreasing()
 bool ClassTests::testSumIntWithPreset()
 {
     INIT_TEST;
-    SKIP_IF_NOT(LENGTH(instance) > 10);
-    SKIP_IF_NOT(TYPEOF(instance) == INTSXP);
+    SKIP_IF_NOT( LENGTH(instance) > 10);
+    SKIP_IF_NOT( TYPEOF(instance) == INTSXP);
+    SKIP_IF_NOT( isWritable(instance));
 
     for (R_xlen_t i = 0; i < LENGTH(instance); i++) {
         SET_INTEGER_ELT(instance, i, 1);
@@ -408,8 +449,8 @@ bool ClassTests::testSumIntWithPreset()
 bool ClassTests::testSumIntWithoutPreset()
 {
     INIT_TEST;
-    SKIP_IF_NOT(TYPEOF(instance) == INTSXP);
-    std::vector<int> vec(INTEGER(instance), INTEGER(instance) + LENGTH(instance));
+    SKIP_IF_NOT( TYPEOF(instance) == INTSXP);
+    std::vector<int> vec = copyData<int>(instance);
     int expected_sum = std::accumulate(vec.cbegin(), vec.cend(), 0);
 
     SEXP actual_sum = Rf_eval(Rf_lang2(Rf_install("sum"), instance), R_BaseEnv);
@@ -421,35 +462,6 @@ bool ClassTests::testSumIntWithoutPreset()
     FINISH_TEST;
 }
 
-// TODO: Fix this test - it does not trigger integer overflow.
-bool ClassTests::testSumIntOverflow()
-{
-    INIT_TEST;
-    const int length = LENGTH(instance);
-    SKIP_IF_NOT(length > 10);
-    SKIP_IF_NOT(TYPEOF(instance) == INTSXP);
-
-    // Set the elements to some high constant so the Sum method overflows.
-    SET_INTEGER_ELT(instance, 0, std::numeric_limits<int>::max());
-    for (R_xlen_t i = 1; i < length; i++) {
-        SET_INTEGER_ELT(instance, i, 1);
-    }
-    std::vector<int> vec(INTEGER(instance), INTEGER(instance) + length);
-
-    double expected_sum = std::accumulate(vec.begin(), vec.end(), (double) 0.0);
-
-    SEXP sum_symbol = install("sum");
-    SEXP sum_call = lang2(sum_symbol, instance);
-    SEXP actual_sum_sexp = eval(sum_call, R_BaseEnv);
-    ASSERT( actual_sum_sexp != nullptr);
-    CHECK( LENGTH(actual_sum_sexp) == 1);
-    CHECK( TYPEOF(actual_sum_sexp) == REALSXP);
-    double actual_sum = REAL_ELT(actual_sum_sexp, 0);
-
-    CHECK( actual_sum == expected_sum);
-    FINISH_TEST;
-}
-
 /**
  * Tests Min altrep method by presetting some values into the instance and then checking
  * the actual min element.
@@ -457,14 +469,15 @@ bool ClassTests::testSumIntOverflow()
 bool ClassTests::testMinWithPreset()
 {
     INIT_TEST;
-    SKIP_IF_NOT(LENGTH(instance) > 10);
-    SKIP_IF_NOT(TYPEOF(instance) == INTSXP);
+    SKIP_IF_NOT( LENGTH(instance) > 10);
+    SKIP_IF_NOT( TYPEOF(instance) == INTSXP);
+    SKIP_IF_NOT( isWritable(instance));
 
     for (R_xlen_t i = 0; i < LENGTH(instance); i++) {
         const int value = std::rand() % LENGTH(instance);
         SET_INTEGER_ELT(instance, i, value);
     }
-    std::vector<int> vec(INTEGER(instance), INTEGER(instance) + LENGTH(instance));
+    std::vector<int> vec = copyData<int>(instance);
     int expected_min = *std::min_element(vec.cbegin(), vec.cend());
 
     SEXP actual_min = Rf_eval(Rf_lang2(Rf_install("min"), instance), R_BaseEnv);
@@ -482,7 +495,7 @@ bool ClassTests::testMinWithoutPreset()
 {
     INIT_TEST;
 
-    std::vector<int> vec(INTEGER(instance), INTEGER(instance) + LENGTH(instance));
+    std::vector<int> vec = copyData<int>(instance);
     int expected_min = *std::min_element(vec.cbegin(), vec.cend());
 
     SEXP actual_min = Rf_eval(Rf_lang2(Rf_install("min"), instance), R_BaseEnv);
@@ -497,14 +510,15 @@ bool ClassTests::testMaxWithPreset()
 {
     INIT_TEST;
     const int length = LENGTH(instance);
-    SKIP_IF_NOT(length > 10);
-    SKIP_IF_NOT(TYPEOF(instance) == INTSXP);
+    SKIP_IF_NOT( length > 10);
+    SKIP_IF_NOT( TYPEOF(instance) == INTSXP);
+    SKIP_IF_NOT( isWritable(instance));
 
     for (R_xlen_t i = 0; i < length; i++) {
         const int value = std::rand() % length;
         SET_INTEGER_ELT(instance, i, value);
     }
-    std::vector<int> vec(INTEGER(instance), INTEGER(instance) + length);
+    std::vector<int> vec = copyData<int>(instance);
     int expected_max = *std::max_element(vec.begin(), vec.end());
 
     SEXP actual_max = Rf_eval(Rf_lang2(Rf_install("max"), instance), R_BaseEnv);
@@ -518,7 +532,7 @@ bool ClassTests::testMaxWithPreset()
 bool ClassTests::testMaxWithoutPreset()
 {
     INIT_TEST;
-    std::vector<int> vec(INTEGER(instance), INTEGER(instance) + LENGTH(instance));
+    std::vector<int> vec = copyData<int>(instance);
     int expected_max = *std::max_element(vec.begin(), vec.end());
 
     SEXP actual_max = Rf_eval(Rf_lang2(Rf_install("max"), instance), R_BaseEnv);
