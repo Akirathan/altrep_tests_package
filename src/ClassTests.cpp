@@ -2,6 +2,7 @@
 #include <R.h>
 #include <Rinternals.h>
 #include "Tests.hpp"
+#include <algorithm>
 #include <numeric>
 #include <limits>
 #include <iostream>
@@ -25,6 +26,7 @@ const std::vector< Test> ClassTests::tests = {
     {"test_dataptr_remains_same", testDataptrRemainsSame},
     {"test_get_one_region", testGetOneRegion},
     {"test_get_more_regions", testGetMoreRegions},
+    {"test_sortedness", testSortedness, {"test_dataptr"}},
     {"test_is_sorted_unknown", testIsSortedUnknown},
     {"test_is_sorted_unknown_string", testIsSortedUnknownString},
     {"test_is_sorted_increasing", testIsSortedIncreasing},
@@ -294,6 +296,7 @@ bool ClassTests::testIsSortedUnknown()
             break;
         }
     }
+    // Tady by mela byt validni odpoved i UNKNOWN_SORTEDNESS
     if (sorted == UNKNOWN_SORTEDNESS) {
         Rprintf("%s: Is_sorted has default implementation, skipping rest of test...\n", __func__);
         return true;
@@ -301,6 +304,33 @@ bool ClassTests::testIsSortedUnknown()
     CHECK( sorted == KNOWN_UNSORTED);
     // TODO: This CHECK is unnecessary.
     CHECK( Tests::isBufferSorted(INTEGER(instance), LENGTH(instance), sorted));
+    FINISH_TEST;
+}
+
+bool ClassTests::testSortedness()
+{
+    INIT_TEST;
+    SKIP_IF_NOT( TYPEOF(instance) == INTSXP);
+
+    int sorted = INTEGER_IS_SORTED(instance);
+    std::vector<int> vec(INTEGER(instance), INTEGER(instance) + LENGTH(instance));
+
+    bool is_sorted = std::is_sorted(vec.cbegin(), vec.cend());
+    if (sorted == UNKNOWN_SORTEDNESS) {
+        // Do nothing
+    }
+    else if (sorted == KNOWN_UNSORTED) {
+        CHECK_MSG( !is_sorted, "Expected unsorted vector");
+    }
+    else if (KNOWN_INCR(sorted)) {
+        CHECK_MSG( is_sorted, "Expected sorted vector");
+    }
+    else if (KNOWN_DECR(sorted)) {
+        CHECK_MSG(
+            std::is_sorted(vec.cbegin(), vec.cend(), std::greater_equal<int>{}),
+            "Expected sorted vector in decreasing order"
+        );
+    }
     FINISH_TEST;
 }
 

@@ -26,6 +26,7 @@ private:
     static bool testGetOneRegion();
     static bool testGetMoreRegions();
     static bool testIsSortedUnknown();
+    static bool testSortedness();
     static bool testIsSortedUnknownString();
     static bool testIsSortedIncreasing();
     static bool testSumIntWithPreset();
