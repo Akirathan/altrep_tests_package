@@ -28,10 +28,13 @@ private:
     static bool testIsSortedUnknown();
     static bool testIsSortedUnknownString();
     static bool testIsSortedIncreasing();
-    static bool testSumInt();
+    static bool testSumIntWithPreset();
+    static bool testSumIntWithoutPreset();
     static bool testSumIntOverflow();
-    static bool testMin();
-    static bool testMax();
+    static bool testMinWithPreset();
+    static bool testMinWithoutPreset();
+    static bool testMaxWithPreset();
+    static bool testMaxWithoutPreset();
     static bool testCoerce();
     static bool testDuplicate();
 };

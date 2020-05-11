@@ -28,11 +28,14 @@ const std::vector< Test> ClassTests::tests = {
     {"test_is_sorted_unknown", testIsSortedUnknown},
     {"test_is_sorted_unknown_string", testIsSortedUnknownString},
     {"test_is_sorted_increasing", testIsSortedIncreasing},
-    {"test_sum_int", testSumInt},
+    {"test_sum_int_with_preset", testSumIntWithPreset},
+    {"test_sum_int_without_preset", testSumIntWithoutPreset},
     // TODO: sumIntOverflow does not function as expected
     // {"test_sum_int_overflow", testSumIntOverflow},
-    {"test_min", testMin},
-    {"test_max", testMax},
+    {"test_min_with_preset", testMinWithPreset},
+    {"test_min_without_preset", testMinWithoutPreset},
+    {"test_max_with_preset", testMaxWithPreset},
+    {"test_max_without_preset", testMaxWithoutPreset},
     {"test_coerce", testCoerce, {"test_dataptr"}},
     {"test_duplicate", testDuplicate, {"test_dataptr"}}
 };
@@ -348,7 +351,7 @@ bool ClassTests::testIsSortedIncreasing()
     FINISH_TEST;
 }
 
-bool ClassTests::testSumInt()
+bool ClassTests::testSumIntWithPreset()
 {
     INIT_TEST;
     SKIP_IF_NOT(LENGTH(instance) > 10);
@@ -362,15 +365,29 @@ bool ClassTests::testSumInt()
     // Note that there is nothing like Rf_sum that we could use from the native
     // side, so we are forced to call eval here. In fact, there is ALTINTEGER_SUM
     // function that is not hidden, but this will probably change.
-    SEXP sum_symbol = install("sum");
-    SEXP sum_call = lang2(sum_symbol, instance);
-    SEXP actual_sum_sexp = eval(sum_call, R_BaseEnv);
+    SEXP actual_sum_sexp = Rf_eval(Rf_lang2(Rf_install("sum"), instance), R_BaseEnv);
     ASSERT( actual_sum_sexp != nullptr);
     CHECK( LENGTH(actual_sum_sexp) == 1);
     CHECK( TYPEOF(actual_sum_sexp) == INTSXP);
     int actual_sum = INTEGER_ELT(actual_sum_sexp, 0);
 
     CHECK( actual_sum == expected_sum);
+    FINISH_TEST;
+}
+
+bool ClassTests::testSumIntWithoutPreset()
+{
+    INIT_TEST;
+    SKIP_IF_NOT(TYPEOF(instance) == INTSXP);
+    std::vector<int> vec(INTEGER(instance), INTEGER(instance) + LENGTH(instance));
+    int expected_sum = std::accumulate(vec.cbegin(), vec.cend(), 0);
+
+    SEXP actual_sum = Rf_eval(Rf_lang2(Rf_install("sum"), instance), R_BaseEnv);
+    ASSERT( actual_sum != nullptr);
+    CHECK( LENGTH(actual_sum) == 1);
+    CHECK( TYPEOF(actual_sum) == INTSXP);
+
+    CHECK( expected_sum == INTEGER_ELT(actual_sum, 0));
     FINISH_TEST;
 }
 
@@ -403,7 +420,11 @@ bool ClassTests::testSumIntOverflow()
     FINISH_TEST;
 }
 
-bool ClassTests::testMin()
+/**
+ * Tests Min altrep method by presetting some values into the instance and then checking
+ * the actual min element.
+ */
+bool ClassTests::testMinWithPreset()
 {
     INIT_TEST;
     SKIP_IF_NOT(LENGTH(instance) > 10);
@@ -414,20 +435,35 @@ bool ClassTests::testMin()
         SET_INTEGER_ELT(instance, i, value);
     }
     std::vector<int> vec(INTEGER(instance), INTEGER(instance) + LENGTH(instance));
-    int expected_min = *std::min_element(vec.begin(), vec.end());
+    int expected_min = *std::min_element(vec.cbegin(), vec.cend());
 
-    SEXP min_symbol = install("min");
-    SEXP min_call = lang2(min_symbol, instance);
-    SEXP actual_min_sexp = eval(min_call, R_BaseEnv);
-    CHECK( LENGTH(actual_min_sexp) == 1);
-    CHECK( TYPEOF(actual_min_sexp) == INTSXP);
-    int actual_min = INTEGER_ELT(actual_min_sexp, 0);
+    SEXP actual_min = Rf_eval(Rf_lang2(Rf_install("min"), instance), R_BaseEnv);
+    CHECK( LENGTH(actual_min) == 1);
+    CHECK( TYPEOF(actual_min) == INTSXP);
 
-    CHECK( expected_min == actual_min);
+    CHECK( expected_min == INTEGER_ELT(actual_min, 0));
     FINISH_TEST;
 }
 
-bool ClassTests::testMax()
+/**
+ * Tests Min altrep method without modifying the instance.
+ */
+bool ClassTests::testMinWithoutPreset()
+{
+    INIT_TEST;
+
+    std::vector<int> vec(INTEGER(instance), INTEGER(instance) + LENGTH(instance));
+    int expected_min = *std::min_element(vec.cbegin(), vec.cend());
+
+    SEXP actual_min = Rf_eval(Rf_lang2(Rf_install("min"), instance), R_BaseEnv);
+    CHECK( LENGTH(actual_min) == 1);
+    CHECK( TYPEOF(actual_min) == INTSXP);
+
+    CHECK( expected_min == INTEGER_ELT(actual_min, 0));
+    FINISH_TEST;
+}
+
+bool ClassTests::testMaxWithPreset()
 {
     INIT_TEST;
     const int length = LENGTH(instance);
@@ -441,14 +477,25 @@ bool ClassTests::testMax()
     std::vector<int> vec(INTEGER(instance), INTEGER(instance) + length);
     int expected_max = *std::max_element(vec.begin(), vec.end());
 
-    SEXP max_symbol = install("max");
-    SEXP max_call = lang2(max_symbol, instance);
-    SEXP actual_max_sexp = eval(max_call, R_BaseEnv);
-    CHECK( LENGTH(actual_max_sexp) == 1);
-    CHECK( TYPEOF(actual_max_sexp) == INTSXP);
-    int actual_max = INTEGER_ELT(actual_max_sexp, 0);
+    SEXP actual_max = Rf_eval(Rf_lang2(Rf_install("max"), instance), R_BaseEnv);
+    CHECK( LENGTH(actual_max) == 1);
+    CHECK( TYPEOF(actual_max) == INTSXP);
 
-    CHECK( expected_max == actual_max);
+    CHECK( expected_max == INTEGER_ELT(actual_max, 0));
+    FINISH_TEST;
+}
+
+bool ClassTests::testMaxWithoutPreset()
+{
+    INIT_TEST;
+    std::vector<int> vec(INTEGER(instance), INTEGER(instance) + LENGTH(instance));
+    int expected_max = *std::max_element(vec.begin(), vec.end());
+
+    SEXP actual_max = Rf_eval(Rf_lang2(Rf_install("max"), instance), R_BaseEnv);
+    CHECK( LENGTH(actual_max) == 1);
+    CHECK( TYPEOF(actual_max) == INTSXP);
+
+    CHECK( expected_max == INTEGER_ELT(actual_max, 0));
     FINISH_TEST;
 }
 
@@ -461,7 +508,7 @@ bool ClassTests::testCoerce()
     // We cannot invoke ALTREP_COERCE, because it is internal, and coerceVector
     // fallbacks to the default implementation if we do not provide a specific
     // one.
-    SEXP coerced_vector = coerceVector(instance, REALSXP);
+    SEXP coerced_vector = Rf_coerceVector(instance, REALSXP);
     ASSERT( coerced_vector != nullptr);
     ASSERT( coerced_vector != R_NilValue);
     CHECK( TYPEOF(coerced_vector) == REALSXP);
@@ -491,14 +538,14 @@ bool ClassTests::testDuplicate()
 {
     INIT_TEST;
     SKIP_IF_NOT( TYPEOF(instance) == INTSXP);
-    SEXP duplicated_instance = duplicate(instance);
+    SEXP duplicated_instance = Rf_duplicate(instance);
     ASSERT( duplicated_instance != R_NilValue);
     CHECK( Tests::areBuffersEqual(INTEGER(instance),
                                   INTEGER(duplicated_instance),
                                   LENGTH(instance)));
 
 
-    SEXP shallow_duplicated_instance = shallow_duplicate(instance);
+    SEXP shallow_duplicated_instance = Rf_shallow_duplicate(instance);
     ASSERT( duplicated_instance != R_NilValue);
     CHECK( Tests::areBuffersEqual(INTEGER(instance),
                                   INTEGER(shallow_duplicated_instance),
