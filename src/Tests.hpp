@@ -28,13 +28,13 @@
 
 #define CHECK(cond) \
     if (!(cond)) { \
-        Rprintf("CHECK failed at %s:%d\n", __FILE__, __LINE__); \
+        REprintf("CHECK failed at %s:%d\n", __FILE__, __LINE__); \
         __result = false; \
     }
 
 #define CHECK_MSG(cond, msg) \
     if (!(cond)) { \
-        Rprintf("CHECK failed at %s:%d: %s\n", __FILE__, __LINE__, msg); \
+        REprintf("CHECK failed at %s:%d: %s\n", __FILE__, __LINE__, msg); \
         __result = false; \
     }
 
