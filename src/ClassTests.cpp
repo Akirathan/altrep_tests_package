@@ -7,11 +7,13 @@
 #include <limits>
 #include <iostream>
 
+#undef INIT_TEST
 #define INIT_TEST \
     bool __result = true; \
     SEXP instance = Rf_eval(m_factory_method_call, m_rho); \
     PROTECT(instance);
 
+#undef FINISH_TEST
 #define FINISH_TEST \
     UNPROTECT(1); \
     return __result;
@@ -93,7 +95,7 @@ template <typename T>
 std::vector<T> ClassTests::copyData(SEXP instance)
 {
     std::vector<T> vec(LENGTH(instance));
-    for (size_t i = 0; i < LENGTH(instance); i++) {
+    for (int i = 0; i < LENGTH(instance); i++) {
         switch (TYPEOF(instance)) {
             case INTSXP:
                 vec.push_back(INTEGER_ELT(instance, i));
