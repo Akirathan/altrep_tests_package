@@ -7,8 +7,7 @@ const std::vector< Test> FrameworkTests::tests = {
     {"test_struct_header", testStructHeader},
     {"test_instance_data", testInstanceData},
     {"test_modify_instance_data", testModifyInstanceData},
-    {"test_set_instance_data", testSetInstanceData},
-    {"test_two_instances", testTwoInstances}
+    {"test_set_instance_data", testSetInstanceData}
 };
 R_altrep_class_t FrameworkTests::simple_descr;
 
@@ -25,7 +24,7 @@ SEXP FrameworkTests::run()
     return ScalarLogical(succ);
 }
 
-bool FrameworkTests::testAltrepInheritance()
+TestResult FrameworkTests::testAltrepInheritance()
 {
     INIT_TEST;
     SEXP instance = APIWrapper::R_new_altrep(simple_descr, R_NilValue, R_NilValue);
@@ -34,7 +33,7 @@ bool FrameworkTests::testAltrepInheritance()
 }
 
 
-bool FrameworkTests::testStructHeader()
+TestResult FrameworkTests::testStructHeader()
 {
     INIT_TEST;
     SEXP instance = APIWrapper::R_new_altrep(simple_descr, R_NilValue, R_NilValue);
@@ -42,7 +41,7 @@ bool FrameworkTests::testStructHeader()
     FINISH_TEST;
 }
 
-bool FrameworkTests::testInstanceData()
+TestResult FrameworkTests::testInstanceData()
 {
     INIT_TEST;
     // data1 = [42], data2 = NA
@@ -60,7 +59,7 @@ bool FrameworkTests::testInstanceData()
     FINISH_TEST;
 }
 
-bool FrameworkTests::testModifyInstanceData()
+TestResult FrameworkTests::testModifyInstanceData()
 {
     INIT_TEST;
     // data1 will be VecInt[], ale will be set to VecInt[42]
@@ -78,7 +77,7 @@ bool FrameworkTests::testModifyInstanceData()
     FINISH_TEST;
 }
 
-bool FrameworkTests::testSetInstanceData()
+TestResult FrameworkTests::testSetInstanceData()
 {
     INIT_TEST;
     SEXP instance = PROTECT(APIWrapper::R_new_altrep(simple_descr, R_NilValue, R_NilValue));
@@ -95,34 +94,6 @@ bool FrameworkTests::testSetInstanceData()
     FINISH_TEST;
 }
 
-static R_xlen_t global_length = 0;
-static void * dataptr_method(SEXP instance, Rboolean writeabble) { return nullptr; }
-static R_xlen_t length_method(SEXP instance) {
-    global_length++;
-    return global_length;
-}
-/**
- * Tests length of two instances of same class. Moreover the Length altrep method does
- * some side effects (writes to global variable), so it is important that this method
- * is called just twice for each LENGTH upcall.
- */
-bool FrameworkTests::testTwoInstances()
-{
-    INIT_TEST;
-// TODO: Fix this for FastR
-#ifndef FASTR
-    R_altrep_class_t descr = R_make_altinteger_class("try_class", "try", nullptr);
-    R_set_altrep_Length_method(descr, &length_method);
-    R_set_altvec_Dataptr_method(descr, &dataptr_method);
-
-    SEXP instance1 = R_new_altrep(descr, R_NilValue, R_NilValue);
-    SEXP instance2 = R_new_altrep(descr, R_NilValue, R_NilValue);
-    CHECK( LENGTH(instance1) == 1);
-    CHECK( LENGTH(instance2) == 2);
-#endif
-    FINISH_TEST;
-}
-
 
 
 static void *dataptr_method_2(SEXP instance, Rboolean writeabble) {
@@ -132,7 +103,7 @@ static R_xlen_t length_method_2(SEXP instance) { return 1; }
 /**
  * Tests that one DATAPTR call in AST should be able to return two different values.
  */
-bool FrameworkTests::testDifferentDataptrValue()
+TestResult FrameworkTests::testDifferentDataptrValue()
 {
     INIT_TEST;
     R_altrep_class_t descr = R_make_altinteger_class("try_class", "try", nullptr);

@@ -9,7 +9,7 @@
 
 #undef INIT_TEST
 #define INIT_TEST \
-    bool __result = true; \
+    TestResult __result = TestResult::Success; \
     SEXP instance = Rf_eval(m_factory_method_call, m_rho); \
     PROTECT(instance);
 
@@ -87,36 +87,14 @@ bool ClassTests::isWritable(SEXP instance)
     }
 }
 
-/**
- * Copy of data that is friendly for read-only altrep vectors ie. it does not invoke
- * Dataptr.
- */
-template <typename T>
-std::vector<T> ClassTests::copyData(SEXP instance)
-{
-    std::vector<T> vec(LENGTH(instance));
-    for (int i = 0; i < LENGTH(instance); i++) {
-        switch (TYPEOF(instance)) {
-            case INTSXP:
-                vec.push_back(INTEGER_ELT(instance, i));
-                break;
-            case REALSXP:
-                vec.push_back(REAL_ELT(instance, i));
-                break;
-        }
-    }
-    return vec;
-}
-
-
-bool ClassTests::testLength()
+TestResult ClassTests::testLength()
 {
     INIT_TEST;
     CHECK_MSG (LENGTH(instance) > 0, "Length should be > 0");
     FINISH_TEST;
 }
 
-bool ClassTests::testSetElt()
+TestResult ClassTests::testSetElt()
 {
     INIT_TEST;
     SKIP_IF_NOT( TYPEOF(instance) == INTSXP || TYPEOF(instance) == REALSXP);
@@ -145,7 +123,7 @@ bool ClassTests::testSetElt()
     FINISH_TEST;
 }
 
-bool ClassTests::testSetEltString()
+TestResult ClassTests::testSetEltString()
 {
     INIT_TEST;
     SKIP_IF_NOT( TYPEOF(instance) == STRSXP);
@@ -174,7 +152,7 @@ bool ClassTests::testSetEltString()
  * modify some values inside native memory and check whether next invocation of
  * Dataptr method returns same pointer.
  */
-bool ClassTests::testDataptr()
+TestResult ClassTests::testDataptr()
 {
     INIT_TEST;
     SKIP_IF_NOT( TYPEOF(instance) != STRSXP);
@@ -200,7 +178,7 @@ bool ClassTests::testDataptr()
 /**
  * Tests iteration over CHARSXP elements of one STRSXP.
  */
-bool ClassTests::testStringIterate()
+TestResult ClassTests::testStringIterate()
 {
     INIT_TEST;
     SKIP_IF_NOT( TYPEOF(instance) == STRSXP);
@@ -232,7 +210,7 @@ bool ClassTests::testStringIterate()
  * can return different pointer in every invocation of Dataptr, which breaks
  * the whole idea of immutability in R.
  */
-bool ClassTests::testDataptrRemainsSame()
+TestResult ClassTests::testDataptrRemainsSame()
 {
     INIT_TEST;
     SKIP_IF_NOT( TYPEOF(instance) != STRSXP);
@@ -257,7 +235,7 @@ bool ClassTests::testDataptrRemainsSame()
     FINISH_TEST;
 }
 
-bool ClassTests::testGetOneRegion()
+TestResult ClassTests::testGetOneRegion()
 {
     INIT_TEST;
     SKIP_IF_NOT( TYPEOF(instance) == INTSXP);
@@ -275,7 +253,7 @@ bool ClassTests::testGetOneRegion()
     FINISH_TEST;
 }
 
-bool ClassTests::testGetMoreRegions()
+TestResult ClassTests::testGetMoreRegions()
 {
     INIT_TEST;
     SKIP_IF_NOT( TYPEOF(instance) == INTSXP);
@@ -313,7 +291,7 @@ bool ClassTests::testGetMoreRegions()
     FINISH_TEST;
 }
 
-bool ClassTests::testIsSortedUnknown()
+TestResult ClassTests::testIsSortedUnknown()
 {
     INIT_TEST;
     SKIP_IF_NOT( TYPEOF(instance) == INTSXP || TYPEOF(instance) == REALSXP);
@@ -339,7 +317,7 @@ bool ClassTests::testIsSortedUnknown()
     // Tady by mela byt validni odpoved i UNKNOWN_SORTEDNESS
     if (sorted == UNKNOWN_SORTEDNESS) {
         Rprintf("%s: Is_sorted has default implementation, skipping rest of test...\n", __func__);
-        return true;
+        return TestResult::Skip;
     }
     CHECK( sorted == KNOWN_UNSORTED);
     // TODO: This CHECK is unnecessary.
@@ -347,7 +325,7 @@ bool ClassTests::testIsSortedUnknown()
     FINISH_TEST;
 }
 
-bool ClassTests::testSortedness()
+TestResult ClassTests::testSortedness()
 {
     INIT_TEST;
     SKIP_IF_NOT( TYPEOF(instance) == INTSXP);
@@ -374,7 +352,7 @@ bool ClassTests::testSortedness()
     FINISH_TEST;
 }
 
-bool ClassTests::testIsSortedUnknownString()
+TestResult ClassTests::testIsSortedUnknownString()
 {
     INIT_TEST;
     SKIP_IF_NOT( TYPEOF(instance) == STRSXP);
@@ -389,13 +367,13 @@ bool ClassTests::testIsSortedUnknownString()
     int sorted = STRING_IS_SORTED(instance);
     if (sorted == UNKNOWN_SORTEDNESS) {
         Rprintf("%s: Is_sorted has default implementation, skipping rest of test...\n", __func__);
-        return true;
+        return TestResult::Skip;
     }
     CHECK( sorted == KNOWN_UNSORTED);
     FINISH_TEST;
 }
 
-bool ClassTests::testIsSortedIncreasing()
+TestResult ClassTests::testIsSortedIncreasing()
 {
     INIT_TEST;
     SKIP_IF_NOT( TYPEOF(instance) == INTSXP || TYPEOF(instance) == REALSXP);
@@ -416,14 +394,14 @@ bool ClassTests::testIsSortedIncreasing()
     }
     if (sorted_mode == UNKNOWN_SORTEDNESS) {
         Rprintf("%s: Is_sorted has default implementation, skipping rest of test...\n", __func__);
-        return true;
+        return TestResult::Skip;
     }
     CHECK( sorted_mode == SORTED_INCR);
     CHECK( Tests::isBufferSorted(INTEGER(instance), LENGTH(instance), sorted_mode));
     FINISH_TEST;
 }
 
-bool ClassTests::testSumIntWithPreset()
+TestResult ClassTests::testSumIntWithPreset()
 {
     INIT_TEST;
     SKIP_IF_NOT( LENGTH(instance) > 10);
@@ -448,7 +426,7 @@ bool ClassTests::testSumIntWithPreset()
     FINISH_TEST;
 }
 
-bool ClassTests::testSumIntWithoutPreset()
+TestResult ClassTests::testSumIntWithoutPreset()
 {
     INIT_TEST;
     SKIP_IF_NOT( TYPEOF(instance) == INTSXP);
@@ -468,7 +446,7 @@ bool ClassTests::testSumIntWithoutPreset()
  * Tests Min altrep method by presetting some values into the instance and then checking
  * the actual min element.
  */
-bool ClassTests::testMinWithPreset()
+TestResult ClassTests::testMinWithPreset()
 {
     INIT_TEST;
     SKIP_IF_NOT( LENGTH(instance) > 10);
@@ -493,7 +471,7 @@ bool ClassTests::testMinWithPreset()
 /**
  * Tests Min altrep method without modifying the instance.
  */
-bool ClassTests::testMinWithoutPreset()
+TestResult ClassTests::testMinWithoutPreset()
 {
     INIT_TEST;
 
@@ -508,7 +486,7 @@ bool ClassTests::testMinWithoutPreset()
     FINISH_TEST;
 }
 
-bool ClassTests::testMaxWithPreset()
+TestResult ClassTests::testMaxWithPreset()
 {
     INIT_TEST;
     const int length = LENGTH(instance);
@@ -531,7 +509,7 @@ bool ClassTests::testMaxWithPreset()
     FINISH_TEST;
 }
 
-bool ClassTests::testMaxWithoutPreset()
+TestResult ClassTests::testMaxWithoutPreset()
 {
     INIT_TEST;
     std::vector<int> vec = copyData<int>(instance);
@@ -545,7 +523,7 @@ bool ClassTests::testMaxWithoutPreset()
     FINISH_TEST;
 }
 
-bool ClassTests::testCoerce()
+TestResult ClassTests::testCoerce()
 {
     INIT_TEST;
     SKIP_IF_NOT( LENGTH(instance) > 10);
@@ -580,7 +558,7 @@ bool ClassTests::testCoerce()
  * 
  * See duplicate.c
  */
-bool ClassTests::testDuplicate()
+TestResult ClassTests::testDuplicate()
 {
     INIT_TEST;
     SKIP_IF_NOT( TYPEOF(instance) == INTSXP);

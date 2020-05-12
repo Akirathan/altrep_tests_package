@@ -21,7 +21,7 @@
 
 
 #define INIT_TEST \
-    bool __result = true;
+    TestResult __result = TestResult::Success;
 
 #define FINISH_TEST \
     return __result;
@@ -29,36 +29,42 @@
 #define CHECK(cond) \
     if (!(cond)) { \
         REprintf("CHECK failed at %s:%d\n", __FILE__, __LINE__); \
-        __result = false; \
+        __result = TestResult::Failure; \
     }
 
 #define CHECK_MSG(cond, msg) \
     if (!(cond)) { \
         REprintf("CHECK failed at %s:%d: %s\n", __FILE__, __LINE__, msg); \
-        __result = false; \
+        __result = TestResult::Failure; \
     }
 
 #define ASSERT(cond) \
     if (!(cond)) { \
-        error("%s:%d\n", __FILE__, __LINE__); \
+        Rf_error("%s:%d\n", __FILE__, __LINE__); \
     }
 
 #define SKIP_IF_NOT(cond) \
     if (!(cond)) { \
         Rprintf("Some test precondition (at %s:%d) is not satisfied, skipping current function\n", __FILE__, __LINE__); \
-        return true; \
+        return TestResult::Skip; \
     }
 
 
+enum class TestResult {
+    Success,
+    Failure,
+    Skip
+};
+
 class Test {
 public:
-    using func_type = std::function< bool(void)>;
+    using func_type = std::function< TestResult(void)>;
 
     Test(const std::string &name, func_type func);
     Test(const std::string &name, func_type func, const std::vector< std::string> &deps);
     const std::string & getName() const;
     const std::vector< std::string> & getDependencies() const;
-    bool execute() const;
+    TestResult execute() const;
 
 private:
     std::string m_name;
@@ -106,7 +112,7 @@ public:
 
 private:
     static const Test *curr_test;
-    static std::map< std::string, bool> test_results;
+    static std::map< std::string, TestResult> test_results;
 
     static void runTest(const Test &test);
     static bool checkTestDependencies(const Test &test);
