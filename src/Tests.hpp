@@ -120,6 +120,7 @@ private:
     static void addFailedTest();
     static void beforeRunAll();
     static void afterRunAll();
+    static void printVector(const std::vector< std::string> &vec);
 };
 
 

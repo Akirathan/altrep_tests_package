@@ -114,15 +114,46 @@ void Tests::beforeRunAll()
 
 void Tests::afterRunAll()
 {
-    if (someTestFailed()) {
-        Rprintf("Failures at:");
+    std::vector< std::string> failed_tests;
+    std::vector< std::string> succ_tests;
+    std::vector< std::string> skipped_tests;
     for (auto &&item : test_results) {
-            const std::string &test_name = item.first;
-            bool result = item.second;
-            if (!result) {
-                Rprintf("%s, ", test_name.c_str());
+        TestResult result = item.second;
+        switch (result) {
+            case TestResult::Failure:
+                failed_tests.push_back(item.first);
+                break;
+            case TestResult::Success:
+                succ_tests.push_back(item.first);
+                break;
+            case TestResult::Skip:
+                skipped_tests.push_back(item.first);
+                break;
         }
     }
+    Rprintf("Test results:\n");
+
+    Rprintf("    Succeeded (%d): ", succ_tests.size());
+    printVector(succ_tests);
+    Rprintf("\n");
+
+    Rprintf("    Failed (%d): ", failed_tests.size());
+    printVector(failed_tests);
+    Rprintf("\n");
+
+    Rprintf("    Skipped (%d): ", skipped_tests.size());
+    printVector(skipped_tests);
     Rprintf("\n");
 }
+
+void Tests::printVector(const std::vector< std::string> &vec)
+{
+    Rprintf("[");
+    for (size_t i = 0; i < vec.size(); i++) {
+        Rprintf("%s", vec[i].c_str());
+        if (i != vec.size() - 1) {
+            Rprintf(", ");
+        }
+    }
+    Rprintf("]");
 }
