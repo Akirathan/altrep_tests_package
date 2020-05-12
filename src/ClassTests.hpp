@@ -16,6 +16,7 @@ private:
     static SEXP m_rho;
 
     static void beforeRunAll(SEXP instance, SEXP rho);
+    static void printInstanceInfo(SEXP instance);
     static void afterRunAll();
     static bool isWritable(SEXP instance);
 
@@ -30,10 +31,10 @@ private:
         for (int i = 0; i < LENGTH(instance); i++) {
             switch (TYPEOF(instance)) {
                 case INTSXP:
-                    vec.push_back(INTEGER_ELT(instance, i));
+                    vec.at(i) = INTEGER_ELT(instance, i);
                     break;
                 case REALSXP:
-                    vec.push_back(REAL_ELT(instance, i));
+                    vec.at(i) = REAL_ELT(instance, i);
                     break;
             }
         }

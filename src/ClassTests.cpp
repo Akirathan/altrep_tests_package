@@ -2,6 +2,7 @@
 #include <R.h>
 #include <Rinternals.h>
 #include "Tests.hpp"
+#include "utils.hpp"
 #include <algorithm>
 #include <numeric>
 #include <limits>
@@ -66,10 +67,22 @@ void ClassTests::beforeRunAll(SEXP factory_method, SEXP rho)
 
     m_factory_method_call = factory_method;
     m_rho = rho;
-    // Try to create an instance.
+
     SEXP instance = PROTECT(Rf_eval(m_factory_method_call, m_rho));
     ASSERT( ALTREP(instance));
+    printInstanceInfo(instance);
+
     UNPROTECT(1);
+}
+
+void ClassTests::printInstanceInfo(SEXP instance)
+{
+    if (TYPEOF(instance) == INTSXP && LENGTH(instance) < 100) {
+        std::vector<int> data = copyData<int>(instance);
+        Rprintf("Data of instance = ");
+        print_vector(data);
+        Rprintf("\n");
+    }
 }
 
 void ClassTests::afterRunAll()

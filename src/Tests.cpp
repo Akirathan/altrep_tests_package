@@ -1,4 +1,5 @@
 #include "Tests.hpp"
+#include "utils.hpp"
 #include <R.h>
 #include <Rinternals.h>
 
@@ -134,26 +135,14 @@ void Tests::afterRunAll()
     Rprintf("Test results:\n");
 
     Rprintf("    Succeeded (%d): ", succ_tests.size());
-    printVector(succ_tests);
+    print_vector(succ_tests);
     Rprintf("\n");
 
     Rprintf("    Failed (%d): ", failed_tests.size());
-    printVector(failed_tests);
+    print_vector(failed_tests);
     Rprintf("\n");
 
     Rprintf("    Skipped (%d): ", skipped_tests.size());
-    printVector(skipped_tests);
+    print_vector(skipped_tests);
     Rprintf("\n");
-}
-
-void Tests::printVector(const std::vector< std::string> &vec)
-{
-    Rprintf("[");
-    for (size_t i = 0; i < vec.size(); i++) {
-        Rprintf("%s", vec[i].c_str());
-        if (i != vec.size() - 1) {
-            Rprintf(", ");
-        }
-    }
-    Rprintf("]");
 }
