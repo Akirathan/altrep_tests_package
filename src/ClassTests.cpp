@@ -490,6 +490,7 @@ TestResult ClassTests::testMinWithPreset()
 TestResult ClassTests::testMinWithoutPreset()
 {
     INIT_TEST;
+    SKIP_IF_NOT( TYPEOF(instance) == INTSXP);
 
     std::vector<int> vec = copyData<int>(instance);
     int expected_min = *std::min_element(vec.cbegin(), vec.cend());
@@ -528,6 +529,8 @@ TestResult ClassTests::testMaxWithPreset()
 TestResult ClassTests::testMaxWithoutPreset()
 {
     INIT_TEST;
+    SKIP_IF_NOT( TYPEOF(instance) == INTSXP);
+
     std::vector<int> vec = copyData<int>(instance);
     int expected_max = *std::max_element(vec.begin(), vec.end());
 
