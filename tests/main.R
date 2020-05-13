@@ -16,7 +16,7 @@ run_tests <- function(tests) {
         else {
             cat("[R] ", func_name, "SUCCEEDED\n")
         }
-        cat("=============================================================================\n")
+        cat("=============================================================================\n\n")
     }
 
     if (some_test_failed) {
@@ -30,24 +30,41 @@ test_framework <- function() {
 }
 
 test_simple_class <- function() {
-    altrep_simple_class_tests()
+    altrep_class_tests(quote(simple_class.new()))
 }
 
 test_simple_string_class <- function() {
     altrep_simple_string_class_tests()
 }
 
+
+test_compactseq <- function() {
+    factory_method <- quote(1:10)
+    altrep_class_tests(factory_method)
+}
+
+test_wrapper_object <- function() {
+    x <- as.integer( rnorm(20, mean=150, sd=150))
+    # sort(x) creates "Wrapper object"
+    altrep_class_tests(quote(sort(x)))
+}
+
+test_deferred_string_conversion <- function() {
+    x <- 1:20
+    # `as.character(x)` creates deferred string conversion altrep object
+    altrep_class_tests(quote(as.character(x)))
+}
+
 test_simplemmap <- function() {
     stopifnot(require("simplemmap"))
     FILE_SIZE <- 20
     fname <- tempfile()
-    data <- rep.int(42, FILE_SIZE)
+    data <- as.integer( rnorm(FILE_SIZE, mean=150, sd=150))
     writeBin(data, fname)
-    mmap_instance <- mmap(fname, type="int", ptrOK=TRUE, wrtOK=TRUE, serOK=FALSE)
 
-    succ <- altrep_class_tests(mmap_instance)
+    factory_method <- quote(mmap(fname, type="int", ptrOK=TRUE, wrtOK=TRUE, serOK=FALSE))
+    succ <- altrep_class_tests(factory_method)
 
-    munmap(mmap_instance)
     if (!file.remove(fname)) {
         warning("File ", fname, " remove failed")
     }
@@ -63,10 +80,17 @@ ONLY_ONE_TEST <- FALSE
 TESTS <- list(
     list("test_framework (native)", test_framework),
     list("test_simple_class (native)", test_simple_class),
-    list("test_simplemmap", test_simplemmap),
-    list("test_simple_string_class (native)", test_simple_string_class)
+    #list("test_simple_string_class (native)", test_simple_string_class)
+
+    # Tests altrep classes in Base-R
+    list("test_compactseq", test_compactseq),
+    list("test_wrapper_object", test_wrapper_object),
+    list("test_deferred_string_conversion", test_deferred_string_conversion),
+
+    # Test some packages that use altrep classes
+    list("test_simplemmap", test_simplemmap)
 )
-ONE_TEST <- list(list("test_simplemmap", test_simplemmap))
+ONE_TEST <- list(list("mytry", test_compactseq))
 
 
 

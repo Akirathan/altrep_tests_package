@@ -7,10 +7,6 @@ altrep_class_tests <- function(factory_method) {
     if (!is.language(factory_method)) {
         stop("Parameter factory method is not language")
     }
-    x <- eval(factory_method)
-    if (!is.altrep(x)) {
-        stop("Instance created by 'eval(factory_method)' is not altrep")
-    }
     .Call("class_tests", factory_method, parent.frame())
 }
 

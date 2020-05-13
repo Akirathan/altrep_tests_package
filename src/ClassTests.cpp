@@ -67,6 +67,8 @@ void ClassTests::beforeRunAll(SEXP factory_method, SEXP rho)
 
     m_factory_method_call = factory_method;
     m_rho = rho;
+    PROTECT(m_factory_method_call);
+    PROTECT(m_rho);
 
     SEXP instance = PROTECT(Rf_eval(m_factory_method_call, m_rho));
     ASSERT( ALTREP(instance));
@@ -87,7 +89,8 @@ void ClassTests::printInstanceInfo(SEXP instance)
 
 void ClassTests::afterRunAll()
 {
-    // Do nothing
+    UNPROTECT_PTR(m_factory_method_call);
+    UNPROTECT_PTR(m_rho);
 }
 
 bool ClassTests::isWritable(SEXP instance)
