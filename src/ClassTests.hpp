@@ -42,6 +42,8 @@ private:
     }
 
     static TestResult testLength();
+    static TestResult instanceIsStillAltrepAfterSet();
+    static TestResult instanceIsStillAltrepAfterDataptr();
     static TestResult testSetElt();
     static TestResult testSetEltString();
     static TestResult testDataptr();
