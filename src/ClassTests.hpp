@@ -65,6 +65,8 @@ private:
     static TestResult testMaxWithoutPreset();
     static TestResult testCoerce();
     static TestResult testDuplicate();
+    static TestResult noNAWithoutPreset();
+    static TestResult noNAWithPreset();
 };
 
 #endif // CLASS_TESTS_HPP_
