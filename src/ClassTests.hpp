@@ -49,7 +49,9 @@ private:
     static TestResult testDataptr();
     static TestResult testStringIterate();
     static TestResult testDataptrRemainsSame();
-    static TestResult testGetOneRegion();
+    static TestResult getRegionWithoutPreset();
+    static TestResult getTwoRegionsWithoutPreset();
+    static TestResult getRegionWithPreset();
     static TestResult testGetMoreRegions();
     static TestResult testIsSortedUnknown();
     static TestResult testSortedness();

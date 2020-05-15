@@ -29,7 +29,9 @@ const std::vector< Test> ClassTests::tests = {
     {"test_dataptr", testDataptr},
     {"test_string_iterate", testStringIterate},
     {"test_dataptr_remains_same", testDataptrRemainsSame},
-    {"test_get_one_region", testGetOneRegion},
+    {"getRegionWithoutPreset", getRegionWithoutPreset},
+    {"getTwoRegionsWithoutPreset", getTwoRegionsWithoutPreset},
+    {"getRegionWithPreset", getRegionWithPreset},
     {"test_get_more_regions", testGetMoreRegions},
     {"test_sortedness", testSortedness, {"test_dataptr"}},
     {"test_is_sorted_unknown", testIsSortedUnknown},
@@ -275,7 +277,54 @@ TestResult ClassTests::testDataptrRemainsSame()
     FINISH_TEST;
 }
 
-TestResult ClassTests::testGetOneRegion()
+TestResult ClassTests::getRegionWithoutPreset()
+{
+    INIT_TEST;
+    SKIP_IF_NOT( TYPEOF(instance) == INTSXP);
+
+    std::vector<int> buf(LENGTH(instance));
+    INTEGER_GET_REGION(instance, 0, LENGTH(instance), buf.data());
+
+    std::vector<int> expected_data = copyData<int>(instance);
+
+    CHECK( buf == expected_data);
+    FINISH_TEST;
+}
+
+/**
+ * Tests getting two overlaping regions.
+ */
+TestResult ClassTests::getTwoRegionsWithoutPreset()
+{
+    INIT_TEST;
+    SKIP_IF_NOT( TYPEOF(instance) == INTSXP);
+    SKIP_IF_NOT( LENGTH(instance) >= 10);
+
+    const int region_1_from = 1;
+    const int region_1_size = 5;
+    const int region_2_from = 3;
+    const int region_2_size = 6;
+
+    const std::vector<int> expected_data = copyData<int>(instance);
+
+    std::vector<int> buffer_1(region_1_size);
+    R_xlen_t copied = INTEGER_GET_REGION(instance, region_1_from, region_1_size, buffer_1.data());
+    CHECK( copied == region_1_size);
+    for (int i = region_1_from, buffer_1_idx = 0; i < region_1_from + region_1_size; i++, buffer_1_idx++) {
+        CHECK( expected_data.at(i) == buffer_1.at(buffer_1_idx));
+    }
+
+    std::vector<int> buffer_2(region_2_size);
+    copied = INTEGER_GET_REGION(instance, region_2_from, region_2_size, buffer_2.data());
+    CHECK( copied == region_2_size);
+    for (int i = region_2_from, buffer_2_idx = 0; i < region_2_from + region_2_size; i++, buffer_2_idx++) {
+        CHECK( expected_data.at(i) == buffer_2.at(buffer_2_idx));
+    }
+
+    FINISH_TEST;
+}
+
+TestResult ClassTests::getRegionWithPreset()
 {
     INIT_TEST;
     SKIP_IF_NOT( TYPEOF(instance) == INTSXP);
