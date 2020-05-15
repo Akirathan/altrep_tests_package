@@ -18,6 +18,6 @@ simple_class.new <- function() {
     .Call("simple_class_new")
 }
 
-altrep_simple_string_class.new <- function() {
+simple_string_class.new <- function() {
     .Call("simple_string_class_new")
 }

@@ -34,7 +34,7 @@ test_simple_class <- function() {
 }
 
 test_simple_string_class <- function() {
-    altrep_simple_string_class_tests()
+    altrep_class_tests(quote(simple_string_class.new()))
 }
 
 
@@ -80,7 +80,7 @@ ONLY_ONE_TEST <- FALSE
 TESTS <- list(
     list("test_framework (native)", test_framework),
     list("test_simple_class (native)", test_simple_class),
-    #list("test_simple_string_class (native)", test_simple_string_class)
+    list("test_simple_string_class (native)", test_simple_string_class),
 
     # Tests altrep classes in Base-R
     list("test_compactseq", test_compactseq),
