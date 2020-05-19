@@ -24,6 +24,7 @@ void SimpleClass::init(DllInfo *info)
     R_set_altinteger_Min_method(descr, SimpleClass::minMethod);
     R_set_altinteger_Max_method(descr, SimpleClass::maxMethod);
     R_set_altinteger_Is_sorted_method(descr, SimpleClass::isSortedMethod);
+    R_set_altinteger_No_NA_method(descr, SimpleClass::noNAMethod);
 }
 
 R_altrep_class_t SimpleClass::getDescriptor()
@@ -127,6 +128,11 @@ int SimpleClass::isSortedMethod(SEXP instance)
     else {
         return KNOWN_UNSORTED;
     }
+}
+
+int SimpleClass::noNAMethod(SEXP instance)
+{
+    return INTEGER_NO_NA(getData(instance));
 }
 
 SEXP SimpleClass::getData(SEXP instance)
