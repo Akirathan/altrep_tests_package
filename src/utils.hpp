@@ -8,5 +8,6 @@
 
 void print_vector(const std::vector< std::string> &vec);
 void print_vector(const std::vector< int> &vec);
+void print_vector(const std::vector< double> &vec);
 
 #endif // UTILS_HPP_

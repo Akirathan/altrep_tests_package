@@ -37,6 +37,20 @@ test_simple_string_class <- function() {
     altrep_class_tests(quote(simple_string_class.new()))
 }
 
+#' Tests vectors (non-altrep objects)
+test_vectors <- function() {
+    set.seed(42)
+
+    # Integer vectors
+    altrep_class_tests(quote(c(42L, 3L)))
+    factory_method <- quote(set.seed(42); as.integer(runif(20, min=0, max=100)))
+    altrep_class_tests(factory_method)
+
+    # Real vectors
+    altrep_class_tests(quote(c(1, 2, 5)))
+    altrep_class_tests(quote(c(42, 3)))
+}
+
 
 test_compactseq <- function() {
     factory_method <- quote(1:10)
@@ -81,6 +95,9 @@ TESTS <- list(
     list("test_framework (native)", test_framework),
     list("test_simple_class (native)", test_simple_class),
     list("test_simple_string_class (native)", test_simple_string_class),
+
+    # Test non-altrep objects
+    list("test_vectors", test_vectors),
 
     # Tests altrep classes in Base-R
     list("test_compactseq", test_compactseq),

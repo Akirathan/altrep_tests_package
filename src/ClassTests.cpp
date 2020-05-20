@@ -82,7 +82,6 @@ void ClassTests::beforeRunAll(SEXP factory_method, SEXP rho)
     PROTECT(m_rho);
 
     SEXP instance = PROTECT(Rf_eval(m_factory_method_call, m_rho));
-    ASSERT( ALTREP(instance));
     printInstanceInfo(instance);
 
     UNPROTECT(1);
@@ -90,12 +89,34 @@ void ClassTests::beforeRunAll(SEXP factory_method, SEXP rho)
 
 void ClassTests::printInstanceInfo(SEXP instance)
 {
-    if (TYPEOF(instance) == INTSXP && LENGTH(instance) < 100) {
-        std::vector<int> data = copyData<int>(instance);
-        Rprintf("Data of instance = ");
-        print_vector(data);
-        Rprintf("\n");
+    Rprintf("Instance info:{\n");
+    if (ALTREP(instance)) {
+        Rprintf("\tALTREP\n");
     }
+    else {
+        Rprintf("\tNot ALTREP\n");
+    }
+    Rprintf("\tTYPE = ");
+    switch (TYPEOF(instance)) {
+        case INTSXP:
+            Rprintf("integer\n");
+            break;
+        case REALSXP:
+            Rprintf("double\n");
+            break;
+        default:
+            Rprintf("not yet implemented\n");
+            break;
+    }
+    Rprintf("\tData = ");
+    if (TYPEOF(instance) == INTSXP) {
+        print_vector(copyData<int>(instance));
+    }
+    else if (TYPEOF(instance) == REALSXP) {
+        print_vector(copyData<double>(instance));
+    }
+    Rprintf("\n");
+    Rprintf("}\n");
 }
 
 void ClassTests::afterRunAll()
@@ -128,6 +149,7 @@ TestResult ClassTests::testLength()
 TestResult ClassTests::instanceIsStillAltrepAfterSet()
 {
     INIT_TEST;
+    SKIP_IF_NOT( ALTREP(instance));
     SKIP_IF_NOT( TYPEOF(instance) == INTSXP || TYPEOF(instance) == REALSXP);
     if (TYPEOF(instance) == INTSXP) {
         SET_INTEGER_ELT(instance, 0, 42);
@@ -142,6 +164,7 @@ TestResult ClassTests::instanceIsStillAltrepAfterSet()
 TestResult ClassTests::instanceIsStillAltrepAfterDataptr()
 {
     INIT_TEST;
+    SKIP_IF_NOT( ALTREP(instance));
     const void *dataptr = DATAPTR(instance);
     ASSERT( dataptr != nullptr);
     CHECK( ALTREP(instance));
@@ -207,11 +230,10 @@ TestResult ClassTests::testSetEltString()
 TestResult ClassTests::testDataptr()
 {
     INIT_TEST;
-    SKIP_IF_NOT( TYPEOF(instance) != STRSXP);
+    SKIP_IF_NOT( TYPEOF(instance) == INTSXP);
     const void *dataptr_old = DATAPTR(instance);
     const int len = LENGTH(instance);
 
-    SKIP_IF_NOT( TYPEOF(instance) == INTSXP);
 
     int *dataptr = INTEGER(instance);
     for (int i = 0; i < len; i++) {
@@ -484,7 +506,12 @@ TestResult ClassTests::testIsSortedIncreasing()
     }
 
     CHECK( sorted_mode == SORTED_INCR || sorted_mode == UNKNOWN_SORTEDNESS);
-    CHECK( Tests::isBufferSorted(INTEGER(instance), LENGTH(instance), sorted_mode));
+    if (TYPEOF(instance) == INTSXP) {
+        CHECK( Tests::isBufferSorted(INTEGER(instance), LENGTH(instance), sorted_mode));
+    }
+    else if (TYPEOF(instance) == REALSXP) {
+        CHECK( Tests::isBufferSorted(REAL(instance), LENGTH(instance), sorted_mode));
+    }
     FINISH_TEST;
 }
 

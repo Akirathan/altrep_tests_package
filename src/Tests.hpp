@@ -45,7 +45,7 @@
 
 #define SKIP_IF_NOT(cond) \
     if (!(cond)) { \
-        Rprintf("Some test precondition (at %s:%d) is not satisfied, skipping current function\n", __FILE__, __LINE__); \
+        Rprintf("Precondition (at %s:%d) not satisfied, skipping test.\n", __FILE__, __LINE__); \
         return TestResult::Skip; \
     }
 
