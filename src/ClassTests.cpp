@@ -67,8 +67,8 @@ SEXP ClassTests::runAll(SEXP factory_method, SEXP rho)
 
 void ClassTests::beforeRunAll(SEXP factory_method, SEXP rho)
 {
-    if (TYPEOF(factory_method) != LANGSXP) {
-        Rf_error("Expected type of factory_method LANGSXP\n");
+    if (TYPEOF(factory_method) != CLOSXP) {
+        Rf_error("Expected type of factory_method is CLOSXP\n");
     }
     if (TYPEOF(rho) != ENVSXP) {
         Rf_error("Expected type of rho is environment\n");
@@ -76,7 +76,7 @@ void ClassTests::beforeRunAll(SEXP factory_method, SEXP rho)
 
     std::srand(42);
 
-    m_factory_method_call = factory_method;
+    m_factory_method_call = Rf_lang1(factory_method);
     m_rho = rho;
     PROTECT(m_factory_method_call);
     PROTECT(m_rho);

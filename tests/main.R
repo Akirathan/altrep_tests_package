@@ -30,43 +30,51 @@ test_framework <- function() {
 }
 
 test_simple_class <- function() {
-    altrep_class_tests(quote(simple_class.new()))
+    factory_method <- function() simple_class.new()
+    altrep_class_tests(factory_method)
 }
 
 test_simple_string_class <- function() {
-    altrep_class_tests(quote(simple_string_class.new()))
+    factory_method <- function() simple_string_class.new()
+    altrep_class_tests(factory_method)
 }
 
 #' Tests vectors (non-altrep objects)
 test_vectors <- function() {
-    set.seed(42)
-
     # Integer vectors
-    altrep_class_tests(quote(c(42L, 3L)))
-    factory_method <- quote(set.seed(42); as.integer(runif(20, min=0, max=100)))
+    altrep_class_tests(function() c(42L, 3L))
+    factory_method <- function() {
+        set.seed(42)
+        as.integer(runif(20, min=0, max=100))
+    }
     altrep_class_tests(factory_method)
 
     # Real vectors
-    altrep_class_tests(quote(c(1, 2, 5)))
-    altrep_class_tests(quote(c(42, 3)))
+    altrep_class_tests(function() c(1, 2, 5))
+    altrep_class_tests(function() c(42, 3))
 }
 
 
 test_compactseq <- function() {
-    factory_method <- quote(1:10)
-    altrep_class_tests(factory_method)
+    altrep_class_tests(function() 1:10)
 }
 
 test_wrapper_object <- function() {
-    x <- as.integer( rnorm(20, mean=150, sd=150))
-    # sort(x) creates "Wrapper object"
-    altrep_class_tests(quote(sort(x)))
+    factory_method <- function() {
+        x <- as.integer( rnorm(20, mean=150, sd=150))
+        # sort(x) creates "Wrapper object"
+        sort(x)
+    }
+    altrep_class_tests(factory_method)
 }
 
 test_deferred_string_conversion <- function() {
-    x <- 1:20
-    # `as.character(x)` creates deferred string conversion altrep object
-    altrep_class_tests(quote(as.character(x)))
+    factory_method <- function() {
+        x <- 1:10
+        # `as.character(x)` creates deferred string conversion altrep object
+        as.character(x)
+    }
+    altrep_class_tests(factory_method)
 }
 
 test_simplemmap <- function() {
@@ -76,7 +84,9 @@ test_simplemmap <- function() {
     data <- as.integer( rnorm(FILE_SIZE, mean=150, sd=150))
     writeBin(data, fname)
 
-    factory_method <- quote(mmap(fname, type="int", ptrOK=TRUE, wrtOK=TRUE, serOK=FALSE))
+    factory_method <- function() {
+        mmap(fname, type="int", ptrOK=TRUE, wrtOK=TRUE, serOK=FALSE)
+    }
     succ <- altrep_class_tests(factory_method)
 
     if (!file.remove(fname)) {
