@@ -44,14 +44,9 @@ const std::vector< Test> ClassTests::tests = {
     {"testMaxWithPreset", testMaxWithPreset},
     {"testMaxWithoutPreset", testMaxWithoutPreset},
     {"testCoerce", testCoerce, {"testDataptr"}},
-    {"testDuplicate", testDuplicate, {"testDataptr"}}
-
-    // TODO: No_NA does not work because of bad behavior in Base-R. See comments on methods.
-#ifdef FASTR
-    ,
+    {"testDuplicate", testDuplicate, {"testDataptr"}},
     {"noNAWithoutPreset", noNAWithoutPreset},
     {"noNAWithPreset", noNAWithPreset}
-#endif
 };
 SEXP ClassTests::m_factory_method_call;
 SEXP ClassTests::m_rho;
@@ -691,28 +686,27 @@ TestResult ClassTests::testDuplicate()
     FINISH_TEST;
 }
 
-// TODO: Does not work currently because default implementation in Base R returns FALSE.
+/**
+ * The default implementation returns FALSE.
+ */
 TestResult ClassTests::noNAWithoutPreset()
 {
     INIT_TEST;
-#ifdef FASTR
     SKIP_IF_NOT( TYPEOF(instance) == INTSXP);
 
     std::vector<int> data = copyData<int>(instance);
     auto it = std::find(data.cbegin(), data.cend(), R_NaInt);
     Rboolean expected_no_na = it == data.cend() ? TRUE : FALSE;
 
-    CHECK( expected_no_na == INTEGER_NO_NA(instance));
+    CHECK( INTEGER_NO_NA(instance) == expected_no_na ||
+           INTEGER_NO_NA(instance) == FALSE); // Default implementation
 
-#endif
     FINISH_TEST;
 }
 
-// TODO: Does not work currently because default implementation in Base R returns FALSE.
 TestResult ClassTests::noNAWithPreset()
 {
     INIT_TEST;
-#ifdef FASTR
     SKIP_IF_NOT( TYPEOF(instance) == INTSXP);
     SKIP_IF_NOT( isWritable(instance));
     
@@ -722,8 +716,8 @@ TestResult ClassTests::noNAWithPreset()
     for (int i = 0; i < LENGTH(instance); i++) {
         SET_INTEGER_ELT(instance, i, 0);
     }
-    CHECK( TRUE == INTEGER_NO_NA(instance));
+    CHECK( TRUE == INTEGER_NO_NA(instance) ||
+           FALSE == INTEGER_NO_NA(instance)); // Default implementation
 
-#endif
     FINISH_TEST;
 }
