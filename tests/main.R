@@ -40,18 +40,22 @@ test_simple_string_class <- function() {
 }
 
 #' Tests vectors (non-altrep objects)
-test_vectors <- function() {
-    # Integer vectors
+test_int_vectors <- function() {
     altrep_class_tests(function() c(42L, 3L))
     factory_method <- function() {
         set.seed(42)
         as.integer(runif(20, min=0, max=100))
     }
     altrep_class_tests(factory_method)
+}
 
-    # Real vectors
+test_real_vectors <- function() {
     altrep_class_tests(function() c(1, 2, 5))
     altrep_class_tests(function() c(42, 3))
+}
+
+test_string_vectors <- function() {
+    return (TRUE)
 }
 
 
