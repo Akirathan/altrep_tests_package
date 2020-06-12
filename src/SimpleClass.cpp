@@ -13,6 +13,7 @@ void SimpleClass::init(DllInfo *info)
 
     // Override ALTREP methods.
     R_set_altrep_Length_method(descr, SimpleClass::lengthMethod);
+    R_set_altrep_Duplicate_method(descr, SimpleClass::duplicate);
 
     // Override ALTVEC methods.
     R_set_altvec_Dataptr_method(descr, SimpleClass::dataptr);
@@ -61,6 +62,16 @@ int SimpleClass::elt(SEXP instance, R_xlen_t idx)
     else {
         return R_NaInt;
     }
+}
+
+SEXP SimpleClass::duplicate(SEXP instance, Rboolean deep)
+{
+    SEXP data = getData(instance);
+    SEXP ans = Rf_allocVector(INTSXP, LENGTH(data));
+    for (int i = 0; i < LENGTH(data); i++) {
+        INTEGER(ans)[i] = INTEGER_ELT(data, i);
+    }
+    return ans;
 }
 
 R_xlen_t SimpleClass::getRegion(SEXP instance, R_xlen_t from_idx, R_xlen_t size, int *buffer)
@@ -137,5 +148,9 @@ int SimpleClass::noNAMethod(SEXP instance)
 
 SEXP SimpleClass::getData(SEXP instance)
 {
-    return R_altrep_data1(instance);
+    SEXP data = R_altrep_data1(instance);
+    if (TYPEOF(data) != INTSXP) {
+        Rf_error("SimpleClass: Expected INTSXP data");
+    }
+    return data;
 }
