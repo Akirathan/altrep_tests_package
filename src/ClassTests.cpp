@@ -29,6 +29,7 @@ const std::vector< Test> ClassTests::tests = {
     {"testDataptr", testDataptr},
     {"testStringIterate", testStringIterate},
     {"testDataptrRemainsSame", testDataptrRemainsSame},
+    {"testLengthRemainsSame", testLengthRemainsSame},
     {"getRegionWithoutPreset", getRegionWithoutPreset},
     {"getTwoRegionsWithoutPreset", getTwoRegionsWithoutPreset},
     {"getRegionWithPreset", getRegionWithPreset},
@@ -298,6 +299,34 @@ TestResult ClassTests::testDataptrRemainsSame()
     Rf_duplicate(instance);
     CHECK(dataptr_old == DATAPTR(instance));
 
+    FINISH_TEST;
+}
+
+/**
+ * As mentioned in the test above, all objects in R are immutable, which means that
+ * a length of an object should not change.
+ */
+TestResult ClassTests::testLengthRemainsSame()
+{
+    INIT_TEST;
+    SKIP_IF_NOT( TYPEOF(instance) != STRSXP);
+    R_xlen_t old_length = LENGTH(instance);
+    CHECK( old_length == LENGTH(instance));
+
+    Rf_eval( Rf_lang2(Rf_install("sum"), instance), R_BaseEnv);
+    CHECK(old_length == LENGTH(instance));
+
+    Rf_eval( Rf_lang2(Rf_install("max"), instance), R_BaseEnv);
+    CHECK(old_length == LENGTH(instance));
+
+    Rf_eval( Rf_lang2(Rf_install("min"), instance), R_BaseEnv);
+    CHECK(old_length == LENGTH(instance));
+
+    Rf_coerceVector(instance, REALSXP);
+    CHECK(old_length == LENGTH(instance));
+
+    Rf_duplicate(instance);
+    CHECK(old_length == LENGTH(instance));
     FINISH_TEST;
 }
 
