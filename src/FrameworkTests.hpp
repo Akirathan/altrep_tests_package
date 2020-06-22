@@ -21,6 +21,7 @@ private:
     static TestResult testModifyInstanceData();
     static TestResult testSetInstanceData();
     static TestResult testDifferentDataptrValue();
+    static TestResult testRedefineMethod();
 };
 
 #endif // FRAMEWORK_TESTS_HPP_

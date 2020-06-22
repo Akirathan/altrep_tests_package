@@ -5,7 +5,8 @@ const std::vector< Test> FrameworkTests::tests = {
     {"test_struct_header", testStructHeader},
     {"test_instance_data", testInstanceData},
     {"test_modify_instance_data", testModifyInstanceData},
-    {"test_set_instance_data", testSetInstanceData}
+    {"test_set_instance_data", testSetInstanceData},
+    {"test_redefine_method", testRedefineMethod}
 };
 R_altrep_class_t FrameworkTests::simple_descr;
 
@@ -135,5 +136,43 @@ TestResult FrameworkTests::testDifferentDataptrValue()
     }
     CHECK( first_dataptr != second_dataptr);
 
+    FINISH_TEST;
+}
+
+
+static int data[5] = {1, 2, 3, 4, 5};
+
+static R_xlen_t temp_Length(SEXP instance) {
+    return 5;
+}
+
+static void * temp_Dataptr(SEXP instance, Rboolean writeable) {
+    return data;
+}
+
+/**
+ * In GNU-R whenever a class definition is changed eg. a pointer to one of its' methods,
+ * the effects can be seen immediately by all instances. This is because in GNU-R, a
+ * class definition is represented by a raw vector containing pointers to methods, and an
+ * instance has a pointer to this raw vector.
+ * 
+ * We do not expect this feature to be exploited often, however for compatibility reasons
+ * we have to test it.
+ */
+TestResult FrameworkTests::testRedefineMethod()
+{
+    INIT_TEST;
+    R_set_altrep_Length_method(simple_descr, &temp_Length);
+    R_set_altvec_Dataptr_method(simple_descr, &temp_Dataptr);
+    SEXP instance = R_new_altrep(simple_descr, R_NilValue, R_NilValue);
+    CHECK( 5 == LENGTH(instance));
+    CHECK( data == DATAPTR(instance));
+
+    // Reset the class to its previous state.
+    R_set_altrep_Length_method(simple_descr, &dummy_Length);
+    R_set_altvec_Dataptr_method(simple_descr, &dummy_Dataptr);
+    SEXP new_instance = R_new_altrep(simple_descr, R_NilValue, R_NilValue);
+    CHECK( 0 == LENGTH(new_instance));
+    CHECK( nullptr == DATAPTR(new_instance));
     FINISH_TEST;
 }
