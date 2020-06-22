@@ -24,7 +24,7 @@ static R_xlen_t dummy_Length(SEXP instance) {
         return LENGTH(R_altrep_data1(instance));
     }
     else {
-        return 1;
+        return 0;
     }
 }
 
