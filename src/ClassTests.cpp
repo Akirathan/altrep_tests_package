@@ -27,6 +27,7 @@ const std::vector< Test> ClassTests::tests = {
     {"testSetElt", testSetElt},
     {"testSetEltString", testSetEltString},
     {"testDataptr", testDataptr},
+    {"integerEltEqualsDataFromInteger", integerEltEqualsDataFromInteger},
     {"testStringIterate", testStringIterate},
     {"testDataptrRemainsSame", testDataptrRemainsSame},
     {"getRegionWithoutPreset", getRegionWithoutPreset},
@@ -244,6 +245,30 @@ TestResult ClassTests::testDataptr()
 }
 
 /**
+ * Tests that data obtained via INTEGER are same as data obtained via INTEGER_ELT.
+ * Note that the type of the instance may be whatever except STRSXP.
+ */
+TestResult ClassTests::integerEltEqualsDataFromInteger()
+{
+    INIT_TEST;
+    SKIP_IF_NOT( TYPEOF(instance) != STRSXP);
+
+    std::vector<int> data_from_elt(LENGTH(instance));
+    for (int i = 0; i < LENGTH(instance); i++) {
+        data_from_elt[i] = INTEGER_ELT(instance, i);
+    }
+
+    std::vector<int> data_from_integer(LENGTH(instance));
+    int *dataptr = INTEGER(instance);
+    for (int i = 0; i < LENGTH(instance); i++) {
+        data_from_integer[i] = dataptr[i];
+    }
+    CHECK( data_from_elt == data_from_integer);
+
+    FINISH_TEST;
+}
+
+/**
  * Tests iteration over CHARSXP elements of one STRSXP.
  */
 TestResult ClassTests::testStringIterate()
@@ -407,21 +432,13 @@ TestResult ClassTests::testIsSortedUnknown()
     INIT_TEST;
     SKIP_IF_NOT( TYPEOF(instance) == INTSXP || TYPEOF(instance) == REALSXP);
     SKIP_IF_NOT( LENGTH(instance) > 3);
-    SKIP_IF_NOT( isWritable(instance));
 
     // Set first few elements "randomly" so we get KNOWN_UNSORTED.
     // Note that as of R 3.6.1 SET_INTEGER_ELT does not dispatch into any altrep method, so
     // the instance does not know that someone has just modified some of its' elements.
-    // So we add DATAPTR to be sure that the underlying instance knows that it is modified.
-    // TODO: This should be fixed in future version of R.
-    // Note that currently this test will fail for example for compact sequences.
     SET_INTEGER_ELT(instance, 0, 423);
     SET_INTEGER_ELT(instance, 1, 13);
     SET_INTEGER_ELT(instance, 2, 179);
-    // TODO: This DATAPTR function call should be removed in future version of R. See comment
-    // above. This is just a workaround.
-    const void *dataptr = DATAPTR(instance);
-    ASSERT( dataptr != nullptr);
 
     int sorted = UNKNOWN_SORTEDNESS;
     switch (TYPEOF(instance)) {
@@ -687,7 +704,7 @@ TestResult ClassTests::testDuplicate()
 }
 
 /**
- * The default implementation returns FALSE.
+ * Note that INTEGER_NO_NA is lazy, therefore the default implementation returns FALSE.
  */
 TestResult ClassTests::noNAWithoutPreset()
 {
@@ -708,7 +725,6 @@ TestResult ClassTests::noNAWithPreset()
 {
     INIT_TEST;
     SKIP_IF_NOT( TYPEOF(instance) == INTSXP);
-    SKIP_IF_NOT( isWritable(instance));
     
     SET_INTEGER_ELT(instance, 0, R_NaInt);
     CHECK( FALSE == INTEGER_NO_NA(instance));

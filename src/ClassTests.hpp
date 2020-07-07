@@ -47,6 +47,7 @@ private:
     static TestResult testSetElt();
     static TestResult testSetEltString();
     static TestResult testDataptr();
+    static TestResult integerEltEqualsDataFromInteger();
     static TestResult testStringIterate();
     static TestResult testDataptrRemainsSame();
     static TestResult getRegionWithoutPreset();
