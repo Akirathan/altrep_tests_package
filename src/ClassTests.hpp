@@ -49,7 +49,6 @@ private:
     static TestResult testDataptr();
     static TestResult testStringIterate();
     static TestResult testDataptrRemainsSame();
-    static TestResult testLengthRemainsSame();
     static TestResult getRegionWithoutPreset();
     static TestResult getTwoRegionsWithoutPreset();
     static TestResult getRegionWithPreset();
