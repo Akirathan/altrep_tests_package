@@ -27,6 +27,7 @@ const std::vector< Test> ClassTests::tests = {
     {"testSetElt", testSetElt},
     {"testSetEltString", testSetEltString},
     {"testDataptr", testDataptr},
+    {"testDataptrOrNull", testDataptrOrNull},
     {"integerEltEqualsDataFromInteger", integerEltEqualsDataFromInteger},
     {"testStringIterate", testStringIterate},
     {"testDataptrRemainsSame", testDataptrRemainsSame},
@@ -241,6 +242,22 @@ TestResult ClassTests::testDataptr()
     }
 
     CHECK_MSG( dataptr_old == DATAPTR(instance), "DATAPTR should be pointer to same address, ie. no new instance should be allocated.");
+    FINISH_TEST;
+}
+
+/**
+ * Does not in fact test anything, it rather demonstrates how DATAPTR_OR_NULL should be used.
+ */
+TestResult ClassTests::testDataptrOrNull()
+{
+    INIT_TEST;
+    SKIP_IF_NOT( TYPEOF(instance) != STRSXP);
+    volatile int sum = 0;
+    if (DATAPTR_OR_NULL(instance) == nullptr) {
+        for (int i = 0; i < LENGTH(instance); i++) {
+            sum += INTEGER_ELT(instance, i);
+        }
+    }
     FINISH_TEST;
 }
 
