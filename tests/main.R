@@ -50,8 +50,7 @@ test_int_vectors <- function() {
 }
 
 test_real_vectors <- function() {
-    altrep_class_tests(function() c(1, 2, 5))
-    altrep_class_tests(function() c(42, 3))
+    altrep_class_tests(function() c(1, 2, 5, 42, 56, 13, 10, 96, 4, 4, 13, 18))
 }
 
 test_string_vectors <- function() {
@@ -111,7 +110,9 @@ TESTS <- list(
     list("test_simple_string_class (native)", test_simple_string_class),
 
     # Test non-altrep objects
-    list("test_vectors", test_vectors),
+    list("test_int_vectors", test_int_vectors),
+    list("test_real_vectors", test_real_vectors),
+    list("test_string_vectors", test_string_vectors),
 
     # Tests altrep classes in Base-R
     list("test_compactseq", test_compactseq),

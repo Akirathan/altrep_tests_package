@@ -182,14 +182,12 @@ TestResult ClassTests::testSetElt()
             CHECK( INTEGER_ELT(instance, idx) == int_val);
             break;
         }
-#ifndef FASTR
         case REALSXP: {
             const int real_val = 42.0;
             SET_REAL_ELT(instance, idx, real_val);
             CHECK( REAL_ELT(instance, idx) == real_val);
             break;
         }
-#endif
     }
 
     CHECK_MSG( data_ptr_old == DATAPTR(instance), "DATAPTR should be pointer to same address, ie. no new instance should be allocated.");
@@ -227,18 +225,27 @@ TestResult ClassTests::testSetEltString()
 TestResult ClassTests::testDataptr()
 {
     INIT_TEST;
-    SKIP_IF_NOT( TYPEOF(instance) == INTSXP);
+    SKIP_IF_NOT( TYPEOF(instance) == INTSXP || TYPEOF(instance) == REALSXP);
     const void *dataptr_old = DATAPTR(instance);
     const int len = LENGTH(instance);
 
-
-    int *dataptr = INTEGER(instance);
-    for (int i = 0; i < len; i++) {
-        dataptr[i] = i;
+    if (TYPEOF(instance) == INTSXP) {
+        int *dataptr = INTEGER(instance);
+        for (int i = 0; i < len; i++) {
+            dataptr[i] = i;
+        }
+        for (int i = 0; i < len; i++) {
+            CHECK( INTEGER_ELT(instance, i) == i);
+        }
     }
-
-    for (int i = 0; i < len; i++) {
-        CHECK( INTEGER_ELT(instance, i) == i);
+    else if (TYPEOF(instance) == REALSXP) {
+        double *dataptr = REAL(instance);
+        for (int i = 0; i < len; i++) {
+            dataptr[i] = (double) i;
+        }
+        for (int i = 0; i < len; i++) {
+            CHECK( REAL_ELT(instance, i) == (double) i);
+        }
     }
 
     CHECK_MSG( dataptr_old == DATAPTR(instance), "DATAPTR should be pointer to same address, ie. no new instance should be allocated.");
@@ -268,7 +275,7 @@ TestResult ClassTests::testDataptrOrNull()
 TestResult ClassTests::integerEltEqualsDataFromInteger()
 {
     INIT_TEST;
-    SKIP_IF_NOT( TYPEOF(instance) != STRSXP);
+    SKIP_IF_NOT( TYPEOF(instance) == INTSXP);
 
     std::vector<int> data_from_elt(LENGTH(instance));
     for (int i = 0; i < LENGTH(instance); i++) {
@@ -346,14 +353,24 @@ TestResult ClassTests::testDataptrRemainsSame()
 TestResult ClassTests::getRegionWithoutPreset()
 {
     INIT_TEST;
-    SKIP_IF_NOT( TYPEOF(instance) == INTSXP);
+    SKIP_IF_NOT( TYPEOF(instance) == INTSXP || TYPEOF(instance) == REALSXP);
 
-    std::vector<int> buf(LENGTH(instance));
-    INTEGER_GET_REGION(instance, 0, LENGTH(instance), buf.data());
-
-    std::vector<int> expected_data = copyData<int>(instance);
-
-    CHECK( buf == expected_data);
+    switch (TYPEOF(instance)) {
+        case INTSXP: {
+            std::vector<int> buf(LENGTH(instance));
+            INTEGER_GET_REGION(instance, 0, LENGTH(instance), buf.data());
+            std::vector<int> expected_data = copyData<int>(instance);
+            CHECK( buf == expected_data);
+            break;
+        }
+        case REALSXP: {
+            std::vector<double> buf(LENGTH(instance));
+            REAL_GET_REGION(instance, 0, LENGTH(instance), buf.data());
+            std::vector<double> expected_data = copyData<double>(instance);
+            CHECK( buf == expected_data);
+            break;
+        }
+    }
     FINISH_TEST;
 }
 
@@ -453,9 +470,16 @@ TestResult ClassTests::testIsSortedUnknown()
     // Set first few elements "randomly" so we get KNOWN_UNSORTED.
     // Note that as of R 3.6.1 SET_INTEGER_ELT does not dispatch into any altrep method, so
     // the instance does not know that someone has just modified some of its' elements.
-    SET_INTEGER_ELT(instance, 0, 423);
-    SET_INTEGER_ELT(instance, 1, 13);
-    SET_INTEGER_ELT(instance, 2, 179);
+    if (TYPEOF(instance) == INTSXP) {
+        SET_INTEGER_ELT(instance, 0, 423);
+        SET_INTEGER_ELT(instance, 1, 13);
+        SET_INTEGER_ELT(instance, 2, 179);
+    }
+    else if (TYPEOF(instance) == REALSXP) {
+        SET_REAL_ELT(instance, 0, 423.087);
+        SET_REAL_ELT(instance, 1, 13.010);
+        SET_REAL_ELT(instance, 2, 179.005);
+    }
 
     int sorted = UNKNOWN_SORTEDNESS;
     switch (TYPEOF(instance)) {
@@ -521,7 +545,12 @@ TestResult ClassTests::testIsSortedIncreasing()
     SKIP_IF_NOT( TYPEOF(instance) == INTSXP || TYPEOF(instance) == REALSXP);
 
     for (int i = 0; i < LENGTH(instance); i++) {
-        SET_INTEGER_ELT(instance, i, i);
+        if (TYPEOF(instance) == INTSXP) {
+            SET_INTEGER_ELT(instance, i, i);
+        }
+        else if (TYPEOF(instance) == REALSXP) {
+            SET_REAL_ELT(instance, i, (double) i);
+        }
     }
 
     int sorted_mode = UNKNOWN_SORTEDNESS;
