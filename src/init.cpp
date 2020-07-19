@@ -2,6 +2,7 @@
 #include <Rinternals.h>
 #include <R_ext/Rdynload.h>
 #include "SimpleClass.hpp"
+#include "AltReal.hpp"
 #include "SimpleStringClass.hpp"
 #include "ClassTests.hpp"
 #include "FrameworkTests.hpp"
@@ -13,6 +14,7 @@ static const R_CallMethodDef CallEntries[] = {
         {"framework_tests", (DL_FUNC) &FrameworkTests::run, 0},
         {"class_tests", (DL_FUNC) &ClassTests::runAll, 2},
         {"simple_class_new", (DL_FUNC) &SimpleClass::createInstance, 0},
+        {"alt_real_new", (DL_FUNC) &AltReal::createInstance, 0},
         {"simple_string_class_new", (DL_FUNC) &SimpleStringClass::createInstance, 0},
         {NULL, NULL, 0}
 };

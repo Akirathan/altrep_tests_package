@@ -18,3 +18,7 @@ simple_class.new <- function() {
 simple_string_class.new <- function() {
     .Call("simple_string_class_new")
 }
+
+alt_real.new <- function() {
+    .Call("alt_real_new")
+}

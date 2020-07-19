@@ -5,5 +5,6 @@ export(
        altrep_class_tests,
        altrep_framework_tests,
        simple_class.new,
+       alt_real.new,
        simple_string_class.new
        )

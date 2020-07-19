@@ -39,6 +39,11 @@ test_simple_string_class <- function() {
     altrep_class_tests(factory_method)
 }
 
+test_real_class <- function() {
+    factory_method <- function() alt_real.new()
+    altrep_class_tests(factory_method)
+}
+
 #' Tests vectors (non-altrep objects)
 test_int_vectors <- function() {
     altrep_class_tests(function() c(42L, 3L))
@@ -108,6 +113,7 @@ TESTS <- list(
     list("test_framework (native)", test_framework),
     list("test_simple_class (native)", test_simple_class),
     list("test_simple_string_class (native)", test_simple_string_class),
+    list("test_real_class", test_real_class),
 
     # Test non-altrep objects
     list("test_int_vectors", test_int_vectors),
